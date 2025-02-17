@@ -5,7 +5,7 @@ import java.sql.Connection
 class SQLTransaction(
     private val connection: Connection
 ) {
-    fun prepare(sql: String, fields: Array<String>): SQLPreparedStatement {
+    fun prepare(sql: String, fields: Array<SQLFieldName>): SQLPreparedStatement {
         return SQLPreparedStatement.create(connection, sql, fields)
     }
 
