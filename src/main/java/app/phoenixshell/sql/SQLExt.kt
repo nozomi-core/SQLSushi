@@ -48,11 +48,11 @@ inline fun ResultSet.forEach(callback: ResultSet.() -> Unit) {
     }
 }
 
-inline fun <T> ResultSet.map(mapper: SQLMapper<T>): List<T> {
-    val list = mutableListOf<T>()
+inline fun <Schema, Data> ResultSet.from(schema: Schema, mapper: SQLMapper<Schema, Data>): List<Data> {
+    val list = mutableListOf<Data>()
 
     while(next()) {
-        list.add(mapper(this))
+        list.add(mapper(schema, this))
     }
     return list
 }

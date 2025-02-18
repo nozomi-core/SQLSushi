@@ -2,16 +2,16 @@ package app.phoenixshell.sql
 
 import java.sql.PreparedStatement
 
-typealias QueryBuilderFactory<T> = (SQLSelection, T, TemplateBuilder) -> SQLTemplate
+typealias QueryBuilderFactory<T> = (SQLSelection, T, TemplateBuilder) -> SQLTemplate<T>
 typealias TemplateBuilder = (String) -> SQLTemplateBinding
 
 class SQLTemplateBinding {
-    fun bind(callback: PreparedStatement.() -> Unit): SQLTemplate {
+    fun <T> bind(callback: PreparedStatement.() -> Unit): SQLTemplate<T> {
         TODO()
     }
 }
 
-class SQLTemplate {
+class SQLTemplate<T> {
 
 }
 
@@ -25,7 +25,7 @@ open class SQLQueryList {
         return ""
     }
 
-    fun <T> buildQuery(callback: QueryBuilderFactory<T>): SQLTemplate {
+    fun <T> buildQuery(callback: QueryBuilderFactory<T>): SQLTemplate<T> {
         TODO()
     }
 }

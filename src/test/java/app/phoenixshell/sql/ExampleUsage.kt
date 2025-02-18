@@ -2,13 +2,10 @@ package app.phoenixshell.sql
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import kotlin.math.hypot
 
 object Queries {
     object User: SQLQueryList() {
-        val selectAll = with(Schema.Users) {
-            query("select * from $tableName")
-        }
-
         fun maxAge(queryAge: Int) = buildQuery<Schema.Users> { selection, table, template ->
             template("")
                 .bind {
@@ -22,43 +19,42 @@ object Queries {
                 }
         }
 
-        fun longQuery(age: String) = buildQuery<LocationData> { selection, schema, template ->
+        fun longQuery(age: String) = buildQuery<LocationSchema> { selection, schema, template ->
             template(
                 """
-                    select $selection from ${schema.tableName} where ${schema.position()} = ? 
+                    select $selection from ${schema.tableName} where ${schema.position} = ? 
                 """
             ).bind {
-                set(schema.position(), age)
+                set(schema.position, age)
             }
         }
     }
 }
 
-interface DerivedSchema {
-    val tableName: String
-}
-
-interface LocationData: DerivedSchema {
-    fun position(): SQLFieldName<String>
+class LocationSchema(
+    val tableName: SQLTableName,
+    val position: SQLFieldName<String>
+) {
+    companion object {
+        fun from(users: Schema.Users) = LocationSchema(users, users.location)
+    }
 }
 
 object Schema {
-    object Users: SQLTableName("users"), LocationData {
+    object Users: SQLTableName("users") {
         val age = int("age")
         val isValid = boolean("is_valid")
         val location = string("position")
-
-        override fun position(): SQLFieldName<String> = location
     }
 }
 
 data class SomeData(val age: Int, val isValid: Boolean)
 
-val MyMapper: SQLMapper<SomeData> = {
-    with(Schema.Users) {
+val MyMapper: SQLMapper<Schema.Users, SomeData> = { schema, set ->
+    with(set) {
         SomeData(
-            age = unwrap(age),
-            isValid = unwrap(isValid)
+            age = unwrap(schema.age),
+            isValid = unwrap(schema.isValid)
         )
     }
 }
@@ -102,6 +98,10 @@ class ExampleUsage {
             connection = DefaultSQLConnection
         )
 
+
+
+
+
         db.useTransaction { tact ->
             with(Schema.Users) {
                 tact.exec("create table $tableName($age integer, $isValid integer);")
@@ -113,11 +113,40 @@ class ExampleUsage {
             }
         }
 
+        db.useTransaction { tact ->
+            val queries = listOf(
+                Queries.User.findAge(87),
+                Queries.User.findAge(12),
+            )
+
+            val locationQuery = Queries.User.longQuery("example here")
+
+            val hey = tact.perform(
+                context = Schema.Users,
+                query = queries,
+                selection = {
+                    arrayOf(it.location, it.age)
+                }
+            ).map { schema, set ->
+                set.unwrap(schema.location)
+            }
+
+            val keys = tact.perform(
+                context = LocationSchema.from(Schema.Users),
+                query =  listOf(locationQuery),
+                selection = { schema ->
+                    arrayOf(schema.position)
+                }
+            )
+
+        }
+
 
         db.useTransaction { tact ->
-            val example = tact.prepare("select * from ${Schema.Users.tableName}", arrayOf()).executeQuery().map(MyMapper)
+            val example = tact.prepare("select * from ${Schema.Users.tableName}", arrayOf()).executeQuery().from(MyMapper)
             example.forEach {
                 println("MyAge: ${it.age}")
+                ""
             }
         }
     }
