@@ -3,17 +3,21 @@ package app.phoenixshell.sql
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 
-fun createDatabase(callback: SQLDatabaseBuilder.() -> Unit): SQLDatabase {
-    val builder = SQLDatabaseBuilder()
-    callback(builder)
-
+fun createDatabase(
+    targetVersion: Int,
+    name: String,
+    inMemory: Boolean,
+    connection: SQLDatabaseConnection,
+    migrations: SQLDatabaseMigrationFactory? = null,
+    engine: SQLDatabaseEngine? = null
+): SQLDatabase {
     val options = SQLDatabaseOptions(
-        builder.targetVersion,
-        builder.name ?: "app.db",
-        builder.inMemory,
-        builder.connection!!,
-        builder.migrations,
-        builder.engine
+        targetVersion = targetVersion,
+        name = name,
+        inMemory = inMemory,
+        connection = connection,
+        migrations = migrations,
+        engine = engine
     )
 
     val hikariConfig = HikariConfig().apply {
@@ -86,6 +90,6 @@ private fun runTargetMigrations(
             newMigration.onPostMigrate(tact)
         }
 
-        db.setDatabaseVersion(SQLDatabaseAdminPrivileges(migrations), tact, targetVersion)
+        db.setDatabaseVersion(tact, targetVersion)
     }.requireOkOrThrow()
 }

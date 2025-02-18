@@ -2,10 +2,10 @@ package app.phoenixshell.sql
 
 import java.sql.Connection
 
-class SQLTransaction(
+class SQLTransaction internal constructor(
     private val connection: Connection
 ) {
-    fun prepare(sql: String, fields: Array<SQLFieldName>): SQLPreparedStatement {
+    fun prepare(sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
         return SQLPreparedStatement.create(connection, sql, fields)
     }
 

@@ -6,8 +6,7 @@ class SQLDatabase(
 ) {
     fun <T> useTransaction(transaction: (SQLTransaction) -> T): SQLResult<T> = connection.useTransaction(transaction)
     fun getDatabaseVersion() = engine!!.getCurrentDatabaseVersion(connection)
-    fun setDatabaseVersion(_admin: SQLDatabaseAdminPrivileges, transaction: SQLTransaction, version: Int) = engine!!.setCurrentDatabaseVersion(transaction, version)
-    fun query(sql: String, fields: Array<SQLFieldName>) = connection.query(sql, fields)
+    internal fun setDatabaseVersion(transaction: SQLTransaction, version: Int) = engine!!.setCurrentDatabaseVersion(transaction, version)
 
     fun verifySetup(): SQLDatabase {
         val version = getDatabaseVersion()

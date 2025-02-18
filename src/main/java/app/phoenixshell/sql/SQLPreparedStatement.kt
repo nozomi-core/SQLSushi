@@ -8,9 +8,9 @@ import java.sql.Statement
 class SQLPreparedStatement(
     private val sql: String,
     private val preparedStatement: PreparedStatement,
-    private val fields: Array<SQLFieldName>
+    private val fields: Array<SQLFieldName<*>>
 ) {
-    private fun <T> indexSet(field: SQLFieldName, value: T, callback: (Int, T) -> Unit) {
+    private inline fun <T> indexSet(field: SQLFieldName<*>, value: T, callback: (Int, T) -> Unit) {
         if(value != null) {
             val searchIndex = fields.indexOf(field)
             if(searchIndex == -1) {
@@ -21,55 +21,55 @@ class SQLPreparedStatement(
         }
     }
 
-    fun set(field: SQLFieldName, char: Char?) {
+    fun set(field: SQLFieldName<Char>, char: Char?) {
         indexSet(field, char) { index, value ->
             preparedStatement.setString(index, "$value")
         }
     }
 
-    fun set(field: SQLFieldName, short: Short?) {
+    fun set(field: SQLFieldName<Short>, short: Short?) {
         indexSet(field, short) { index, value ->
             preparedStatement.setShort(index, value!!)
         }
     }
 
-    fun set(field: SQLFieldName, int: Int?) {
+    fun set(field: SQLFieldName<Int>, int: Int?) {
         indexSet(field, int) { index, value ->
             preparedStatement.setInt(index, value!!)
         }
     }
 
-    fun set(field: SQLFieldName, long: Long?) {
+    fun set(field: SQLFieldName<Long>, long: Long?) {
         indexSet(field, long) { index, value ->
             preparedStatement.setLong(index, value!!)
         }
     }
 
-    fun set(field: SQLFieldName, float: Float?) {
+    fun set(field: SQLFieldName<Float>, float: Float?) {
         indexSet(field, float) { index, value ->
             preparedStatement.setFloat(index, value!!)
         }
     }
 
-    fun set(field: SQLFieldName, double: Double?) {
+    fun set(field: SQLFieldName<Double>, double: Double?) {
         indexSet(field, double) { index, value ->
             preparedStatement.setDouble(index, value!!)
         }
     }
 
-    fun set(field: SQLFieldName, string: String?) {
+    fun set(field: SQLFieldName<String>, string: String?) {
         indexSet(field, string) { index, value ->
             preparedStatement.setString(index, value!!)
         }
     }
 
-    fun set(field: SQLFieldName, boolean: Boolean?) {
+    fun set(field: SQLFieldName<Boolean>, boolean: Boolean?) {
         indexSet(field, boolean) { index, value ->
             preparedStatement.setInt(index, if(value!!) 1 else 0)
         }
     }
 
-    fun <T> executeInsert(idGen: SQLIdGenerator<T>, field: SQLFieldName, existingId: T?): T {
+    fun <T> executeInsert(idGen: SQLIdGenerator<T>, field: SQLFieldName<String>, existingId: T?): T {
         return if(existingId == null) {
             val newId = idGen.generateId()
             set(field, newId.toString())
@@ -100,7 +100,7 @@ class SQLPreparedStatement(
 
     companion object {
 
-        fun create(conn: Connection, sql: String, fields: Array<SQLFieldName>): SQLPreparedStatement {
+        fun create(conn: Connection, sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
             val newSql = replaceAlphaNumVariables(sql, fields)
             return SQLPreparedStatement(newSql, conn.prepareStatement(newSql, Statement.RETURN_GENERATED_KEYS), fields)
         }

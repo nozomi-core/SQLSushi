@@ -18,10 +18,4 @@ class SQLConnection(
             }
         }
     }
-
-    fun query(sql: String, fields: Array<SQLFieldName>): SQLPreparedStatement {
-        dataSource.connection.use {
-            return SQLPreparedStatement.create(it, sql, fields)
-        }
-    }
 }

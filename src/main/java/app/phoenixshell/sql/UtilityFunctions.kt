@@ -2,7 +2,7 @@ package app.phoenixshell.sql
 
 /* Convert All '$' with the array values. Will throw error if any Array<String> variables are not alpha_numeric
 * Alpha number requirement is for security to ensure only valid variable names are used */
-fun replaceAlphaNumVariables(str: String, sqlFields: Array<SQLFieldName>): String {
+fun replaceAlphaNumVariables(str: String, sqlFields: Array<SQLFieldName<*>>): String {
     val replacements = sqlFields.map { it.field }
 
     replacements.forEach {

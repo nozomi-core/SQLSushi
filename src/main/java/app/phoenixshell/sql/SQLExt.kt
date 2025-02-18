@@ -1,16 +1,59 @@
 package app.phoenixshell.sql
 
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-inline fun <reified T> ResultSet.get(name: SQLFieldName): T {
-    return when(T::class.java) {
-        String::class.java -> getString(name.field)
-        Int::class.java -> getInt(name.field)
-        Long::class.java -> getLong(name.field)
-        Float::class.java -> getFloat(name.field)
-        Double::class.java -> getDouble(name.field)
+//Result Set
+fun ResultSet.unwrap(name: SQLFieldName<Int>): Int {
+    return getInt(name.field)
+}
 
-        else -> {throw Exception("${T::class.java.canonicalName} is not supported type")}
-    } as T
+fun ResultSet.unwrap(name: SQLFieldName<String>): String {
+    return getString(name.field)
+}
+
+fun ResultSet.unwrap(name: SQLFieldName<Boolean>): Boolean {
+    return getBoolean(name.field)
+}
+
+fun ResultSet.unwrap(name: SQLFieldName<Long>): Long {
+    return getLong(name.field)
+}
+
+fun ResultSet.unwrap(name: SQLFieldName<Float>): Float {
+    return getFloat(name.field)
+}
+
+fun ResultSet.unwrap(name: SQLFieldName<Double>): Double {
+    return getDouble(name.field)
+}
+
+//PreparedStatement
+fun PreparedStatement.set(name: SQLFieldName<Int>, value: Int) {
 
 }
+
+fun PreparedStatement.set(name: SQLFieldName<String>, value: String) {
+
+}
+
+fun PreparedStatement.set(name: SQLFieldName<Boolean>, value: Boolean) {
+
+}
+
+
+inline fun ResultSet.forEach(callback: ResultSet.() -> Unit) {
+    while(next()) {
+        callback(this)
+    }
+}
+
+inline fun <T> ResultSet.map(mapper: SQLMapper<T>): List<T> {
+    val list = mutableListOf<T>()
+
+    while(next()) {
+        list.add(mapper(this))
+    }
+    return list
+}
+
