@@ -1,31 +1,31 @@
 package app.phoenixshell.sql
 
-import java.sql.PreparedStatement
-
-typealias QueryBuilderFactory<T> = (SQLSelection, T, TemplateBuilder) -> SQLTemplate<T>
+typealias QueryBuilderFactory<Schema> = (SQLSelection, Schema, TemplateBuilder) -> SQLTemplate<Schema>
 typealias TemplateBuilder = (String) -> SQLTemplateBinding
 
-class SQLTemplateBinding {
-    fun <T> bind(callback: PreparedStatement.() -> Unit): SQLTemplate<T> {
-        TODO()
+typealias StatementBinding = SQLPreparedStatement.() -> Unit
+
+class SQLTemplateBinding(private val templateSQL: String) {
+    fun <Schema> bind(vararg fields: SQLFieldName<*>, callback: StatementBinding): SQLTemplate<Schema> {
+        return SQLBindingTemplate(callback, templateSQL, fields.toList().toTypedArray())
     }
 }
 
-class SQLTemplate<T> {
+interface SQLTemplate<Schema>
 
+internal class SQLSyntaxTemplate<Schema>(internal val factory: QueryBuilderFactory<Schema>): SQLTemplate<Schema>
+internal class SQLBindingTemplate<Schema>(
+    internal val binding: StatementBinding,
+    internal val sqlTemplate: String,
+    internal val format: Array<SQLFieldName<*>>
+    ): SQLTemplate<Schema>
+
+class SQLSelection(private val fields: Array<SQLFieldName<*>>) {
+    override fun toString(): String = fields.joinToString(separator = ",")
 }
-
-class SQLSelection {
-
-}
-
 
 open class SQLQueryList {
-    fun query(sql: String): String {
-        return ""
-    }
-
-    fun <T> buildQuery(callback: QueryBuilderFactory<T>): SQLTemplate<T> {
-        TODO()
+    fun <Schema> buildQuery(callback: QueryBuilderFactory<Schema>): SQLTemplate<Schema> {
+        return SQLSyntaxTemplate(callback)
     }
 }

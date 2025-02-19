@@ -91,5 +91,5 @@ private fun runTargetMigrations(
         }
 
         db.setDatabaseVersion(tact, targetVersion)
-    }.requireOkOrThrow()
+    }.getOrThrow()
 }

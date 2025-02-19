@@ -9,13 +9,9 @@ class ResultMapping<Schema>(
 ) {
 
     fun <R> map(mapper: SQLMapper<Schema, R>): List<R> {
-        return listOf()
+        return results.map(schema, mapper)
     }
 }
-
-typealias SelectionFields<Schema> =  Schema.() -> List<SQLFieldName<*>>
-
-class Selection<Schema>(val select: SelectionFields<Schema>)
 
 class SQLTransaction internal constructor(
     private val connection: Connection
@@ -28,7 +24,21 @@ class SQLTransaction internal constructor(
         connection.createStatement().execute(sql)
     }
 
-    fun <Schema> perform(context: Schema, query: List<SQLTemplate<Schema>>, selection: (Schema) -> Array<SQLFieldName<*>>): ResultMapping<Schema> {
-        return ResultMapping(context,  TODO())
+    private val templateBuilder: TemplateBuilder = {
+        SQLTemplateBinding(it)
+    }
+
+    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>, selection: (Schema) -> Array<SQLFieldName<*>>): ResultMapping<Schema> {
+        val factory = query as SQLSyntaxTemplate<Schema>
+        val projection = selection(context)
+
+        val bindingTemplate = factory.factory(SQLSelection(projection), context, templateBuilder) as SQLBindingTemplate<Schema>
+
+        val prepStatement = prepare(bindingTemplate.sqlTemplate, bindingTemplate.format)
+        bindingTemplate.binding(prepStatement)
+
+        val results = prepStatement.executeQuery()
+
+        return ResultMapping(context, results)
     }
 }
