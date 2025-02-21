@@ -5,20 +5,29 @@ import org.junit.jupiter.api.Assertions.*
 
 object Queries {
     object User: SQLQueryList() {
-        fun MaxAge(queryAge: Int) = buildQuery<Schema.Users> { selection, table, template ->
-            template("")
-                .bind {
+        val findLocation: (String) -> Unit = {
+
+        }
+
+        fun findAge(ageVal: Int) = buildQuery<Schema.Users> { selection, table, template ->
+            with(table) {
+                template("select $selection from $tableName where $age = ?")
+                    .bind(
+                        age binds ageVal
+                    )
             }
         }
 
-        fun FindAge(qAge: Int) = buildQuery<Schema.Users> { selection, table, template ->
+        fun likeDescription(likeVal: String) = buildQuery<Schema.Popcorn> { selection, table, template ->
             with(table) {
-                template("select $selection from $tableName where $age = ?")
-                    .bind(age, name) {
-                        set(age, qAge)
-                    }
+                template("select * from $table where $desc = ? and example = ?")
+                    .bind(
+                        desc binds likeVal,
+                        desc binds likeVal
+                    )
             }
         }
+
     }
 }
 
@@ -27,6 +36,10 @@ object Schema {
         val name = string("name")
         val age = int("age")
         val isValid = boolean("is_valid")
+    }
+
+    object Popcorn: SQLTableName("popcorn") {
+        val desc = string("hello")
     }
 }
 
@@ -68,6 +81,8 @@ class ExampleUsage {
 
         assertEquals(age::class.java, String::class.java)
         assertTrue(allow)
+
+        Queries.User.findLocation("example")
     }
 
     @Test
@@ -98,10 +113,13 @@ class ExampleUsage {
             }
         }.getOrThrow()
 
+
+        val findQuery = Queries.User.findAge(45)
+
         val props = db.useTransaction { tact ->
             tact.query(
                 context = Schema.Users,
-                query = Queries.User.FindAge(45),
+                query = findQuery,
                 selection = {
                     arrayOf(it.name, it.age)
                 }

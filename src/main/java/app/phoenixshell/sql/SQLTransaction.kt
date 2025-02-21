@@ -34,11 +34,16 @@ class SQLTransaction internal constructor(
 
         val bindingTemplate = factory.factory(SQLSelection(projection), context, templateBuilder) as SQLBindingTemplate<Schema>
 
-        val prepStatement = prepare(bindingTemplate.sqlTemplate, bindingTemplate.format)
-        bindingTemplate.binding(prepStatement)
+        val fieldList = bindingTemplate.bindings.map {
+            it.first
+        }.toTypedArray()
+
+        val prepStatement = prepare(bindingTemplate.sqlTemplate, fieldList)
+        bindingTemplate.bindings.forEach { pair ->
+            prepStatement.setAny(pair.first, pair.second)
+        }
 
         val results = prepStatement.executeQuery()
-
         return ResultMapping(context, results)
     }
 }

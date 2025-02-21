@@ -21,6 +21,21 @@ class SQLPreparedStatement(
         }
     }
 
+    fun setAny(field: SQLFieldName<*>, value: Any?) {
+        when(value) {
+            is Char -> set(field as SQLFieldName<Char>, value)
+            is Short -> set(field as SQLFieldName<Short>, value)
+            is Int -> set(field as SQLFieldName<Int>, value)
+            is Long -> set(field as SQLFieldName<Long>, value)
+            is Float -> set(field as SQLFieldName<Float>, value)
+            is Double -> set(field as SQLFieldName<Double>, value)
+            is String -> set(field as SQLFieldName<String>, value)
+            is Boolean -> set(field as SQLFieldName<Boolean>, value)
+
+            else -> throw Exception("Type is not supported")
+        }
+    }
+
     fun set(field: SQLFieldName<Char>, char: Char?) {
         indexSet(field, char) { index, value ->
             preparedStatement.setString(index, "$value")
