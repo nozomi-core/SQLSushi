@@ -80,25 +80,12 @@ class SQLPreparedStatement(
 
     fun set(field: SQLFieldName<Boolean>, boolean: Boolean?) {
         indexSet(field, boolean) { index, value ->
-            preparedStatement.setInt(index, if(value!!) 1 else 0)
+            preparedStatement.setBoolean(index, value!!)
         }
     }
 
-    fun <T> executeInsert(idGen: SQLIdGenerator<T>, field: SQLFieldName<String>, existingId: T?): T {
-        return if(existingId == null) {
-            val newId = idGen.generateId()
-            set(field, newId.toString())
-            newId
-        } else {
-            set(field, existingId.toString())
-            existingId
-        }.also {
-            preparedStatement.execute()
-        }
-    }
-
-    fun execute() {
-        preparedStatement.execute()
+    fun execute(): Boolean {
+        return preparedStatement.execute()
     }
 
     fun executeQuery(): ResultSet {

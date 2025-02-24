@@ -1,6 +1,6 @@
 package app.phoenixshell.sql
 
-class SQLDatabase(
+class SQLDatabase internal constructor(
     private val connection: SQLConnection,
     private val engine: SQLDatabaseEngine?
 ) {

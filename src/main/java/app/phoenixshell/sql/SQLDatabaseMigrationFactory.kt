@@ -1,5 +1,5 @@
 package app.phoenixshell.sql
 
 interface SQLDatabaseMigrationFactory {
-    fun onCreateMigration(targetVersion: Int): SQLDatabaseMigration
+    fun onCreateMigrations(): Array<SQLDatabaseMigration>
 }

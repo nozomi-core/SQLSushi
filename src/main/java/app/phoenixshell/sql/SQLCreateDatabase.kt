@@ -3,25 +3,31 @@ package app.phoenixshell.sql
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 
+sealed class DatabaseMode {
+    object Memory: DatabaseMode()
+    object External: DatabaseMode()
+}
+
 fun createDatabase(
     targetVersion: Int,
     name: String,
-    inMemory: Boolean,
+    mode: DatabaseMode,
     connection: SQLDatabaseConnection,
     migrations: SQLDatabaseMigrationFactory? = null,
     engine: SQLDatabaseEngine? = null
 ): SQLDatabase {
+
     val options = SQLDatabaseOptions(
         targetVersion = targetVersion,
         name = name,
-        inMemory = inMemory,
+        mode = mode,
         connection = connection,
         migrations = migrations,
         engine = engine
     )
 
     val hikariConfig = HikariConfig().apply {
-        jdbcUrl = options.connection.createConnection(options)
+        jdbcUrl = options.connection.createJdbcUrl(options)
         isAutoCommit = false
     }
 
@@ -65,7 +71,7 @@ private fun setupMigrations(db: SQLDatabase, options: SQLDatabaseOptions) {
             if(options.targetVersion >= 1) {
                 runTargetMigrations(
                     db = db,
-                    migrations = options.migrations,
+                    factory = options.migrations,
                     currentVersion = currentVersion,
                     targetVersion = options.targetVersion
                 )
@@ -76,18 +82,22 @@ private fun setupMigrations(db: SQLDatabase, options: SQLDatabaseOptions) {
 
 private fun runTargetMigrations(
     db: SQLDatabase,
-    migrations: SQLDatabaseMigrationFactory,
+    factory: SQLDatabaseMigrationFactory,
     currentVersion: Int,
-    targetVersion: Int) {
+    targetVersion: Int
+) {
+    val migrations = factory.onCreateMigrations()
 
     db.useTransaction { tact ->
         var version = currentVersion
 
         //Migrate from current version ie 0, and start to migrate from currentVersion + 1
         while(version < targetVersion) {
-            val newMigration = migrations.onCreateMigration(++version)
-            newMigration.onMigrate(tact)
-            newMigration.onPostMigrate(tact)
+            val migrationVersion = ++version
+            val nextMigration = migrations.find { it.version == migrationVersion }!!
+
+            nextMigration.onMigrate(tact)
+            nextMigration.onPostMigrate(tact)
         }
 
         db.setDatabaseVersion(tact, targetVersion)

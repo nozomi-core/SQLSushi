@@ -7,7 +7,6 @@ class ResultMapping<Schema>(
     private val schema: Schema,
     private val results: ResultSet
 ) {
-
     fun <R> map(mapper: SQLMapper<Schema, R>): List<R> {
         return results.map(schema, mapper)
     }
@@ -28,7 +27,16 @@ class SQLTransaction internal constructor(
         SQLTemplateBinding(it)
     }
 
-    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>, selection: (Schema) -> Array<SQLFieldName<*>>): ResultMapping<Schema> {
+    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>): ResultMapping<Schema> {
+        val results = prepareStatement(context, query).executeQuery()
+        return ResultMapping(context, results)
+    }
+
+    fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
+        prepareStatement(context, query).executeUpdate()
+    }
+
+    private fun <Schema> prepareStatement(context: Schema, query: SQLTemplate<Schema>, selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf() }): SQLPreparedStatement {
         val factory = query as SQLSyntaxTemplate<Schema>
         val projection = selection(context)
 
@@ -43,7 +51,6 @@ class SQLTransaction internal constructor(
             prepStatement.setAny(pair.first, pair.second)
         }
 
-        val results = prepStatement.executeQuery()
-        return ResultMapping(context, results)
+        return prepStatement
     }
 }

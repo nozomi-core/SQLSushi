@@ -1,6 +1,10 @@
 package app.phoenixshell.sql
 
-open class SQLTableName(val tableName: String) {
+open class SQLSchema
+
+open class SQLTableName(private val schema: SQLSchema, val tableName: String) {
+    //TODO: Added SQL schema for future
+
     val id = field<String>("id")
 
     override fun toString(): String = tableName

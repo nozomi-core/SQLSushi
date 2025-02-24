@@ -18,7 +18,14 @@ internal class SQLBindingTemplate<Schema>(
     ): SQLTemplate<Schema>
 
 class SQLSelection(private val fields: Array<SQLFieldName<*>>) {
-    override fun toString(): String = fields.joinToString(separator = ",")
+    override fun toString(): String {
+        if(fields.isEmpty()) {
+            return "*"
+        }
+        else {
+            return fields.joinToString(separator = ",")
+        }
+    }
 }
 
 open class SQLQueryList {
