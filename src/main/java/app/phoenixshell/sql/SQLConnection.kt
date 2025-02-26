@@ -7,14 +7,18 @@ class SQLConnection(
 ) {
     fun <T> useTransaction(transaction: (SQLTransaction) -> T): SQLResult<T> {
         dataSource.connection.use { connection ->
+            val transactionScope = SQLTransaction(connection)
+
             return try {
-                val result = transaction(SQLTransaction(connection))
+                val result = transaction(transactionScope)
                 connection.commit()
                 SQLResult.Ok(result)
             } catch (e: Exception) {
                 connection.rollback()
                 e.printStackTrace()
                 SQLResult.Fail(e)
+            } finally {
+                transactionScope.close()
             }
         }
     }

@@ -14,33 +14,43 @@ class ResultMapping<Schema>(
 
 class SQLTransaction internal constructor(
     private val connection: Connection
-) {
+){
+    private var isOpen = true
+
     fun prepare(sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
-        return SQLPreparedStatement.create(connection, sql, fields)
+        return runWithTransaction {
+            SQLPreparedStatement.create(connection, sql, fields)
+        }
     }
 
     fun exec(sql: String) {
-        connection.createStatement().execute(sql)
+        runWithTransaction {
+            connection.createStatement().execute(sql)
+        }
+    }
+
+    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>): ResultMapping<Schema> {
+        return runWithTransaction {
+            val results = prepareStatement(context, query).executeQuery()
+            ResultMapping(context, results)
+        }
+    }
+
+    fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
+        runWithTransaction {
+            prepareStatement(context, query).executeUpdate()
+        }
     }
 
     private val templateBuilder: TemplateBuilder = {
         SQLTemplateBinding(it)
     }
 
-    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>): ResultMapping<Schema> {
-        val results = prepareStatement(context, query).executeQuery()
-        return ResultMapping(context, results)
-    }
-
-    fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
-        prepareStatement(context, query).executeUpdate()
-    }
-
     private fun <Schema> prepareStatement(context: Schema, query: SQLTemplate<Schema>, selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf() }): SQLPreparedStatement {
-        val factory = query as SQLSyntaxTemplate<Schema>
+        val factory = query as SQLTemplate.Syntax<Schema>
         val projection = selection(context)
 
-        val bindingTemplate = factory.factory(SQLSelection(projection), context, templateBuilder) as SQLBindingTemplate<Schema>
+        val bindingTemplate = factory.factory(Selection(projection), context, templateBuilder) as SQLTemplate.Binding<Schema>
 
         val fieldList = bindingTemplate.bindings.map {
             it.first
@@ -52,5 +62,15 @@ class SQLTransaction internal constructor(
         }
 
         return prepStatement
+    }
+
+    private fun <T> runWithTransaction(callback: () -> T): T {
+        return if(!isOpen) {
+            throw Exception("This transaction is closed")
+        } else callback()
+    }
+
+    internal fun close() {
+        isOpen = false
     }
 }
