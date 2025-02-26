@@ -10,10 +10,6 @@ class CreateDatabase {
         override fun onMigrate(tact: SQLTransaction) {
             tact.exec("create table user(age integer);")
         }
-
-        override fun onPostMigrate(tact: SQLTransaction) {
-
-        }
     }
 
     @Test

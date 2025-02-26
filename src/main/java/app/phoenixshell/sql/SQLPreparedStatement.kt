@@ -103,8 +103,7 @@ class SQLPreparedStatement(
     companion object {
 
         fun create(conn: Connection, sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
-            val newSql = replaceAlphaNumVariables(sql, fields)
-            return SQLPreparedStatement(newSql, conn.prepareStatement(newSql, Statement.RETURN_GENERATED_KEYS), fields)
+            return SQLPreparedStatement(sql, conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS), fields)
         }
     }
 }

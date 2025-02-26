@@ -2,7 +2,6 @@ package app.phoenixshell.sql.builder
 
 import app.phoenixshell.sql.SQLSchema
 import app.phoenixshell.sql.SQLTableName
-import app.phoenixshell.sql.replaceAlphaNumVariables
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 
@@ -21,6 +20,5 @@ class TestBuilder {
         val userTable = SQLTableName(SQLSchema(), "user")
         val field = userTable.int("age")
         val stmt = "age = ?"
-        replaceAlphaNumVariables(stmt, arrayOf(field))
     }
 }

@@ -7,6 +7,8 @@ object TestSchema: SQLSchema() {
     object User: SQLTableName(this,"users") {
         val nameField = string("name")
         val birthYearField = int("birth_year")
+        val derivedField = int("derived")
+
     }
 
     object Post: SQLTableName(this, "posts") {

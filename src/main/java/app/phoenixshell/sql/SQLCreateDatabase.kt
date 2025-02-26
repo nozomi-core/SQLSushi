@@ -37,10 +37,11 @@ fun createDatabase(
         options.connection.onCreateConnection(it)
     }
 
-    val connection = SQLConnection(dataSource).apply {
+    val connectionWrapper = SQLConnection(dataSource).apply {
         setupEngine(this, options)
     }
-    return SQLDatabase(connection, options.engine).apply {
+
+    return SQLDatabase(connectionWrapper, options.engine).apply {
         setupMigrations(this, options)
     }
 }
@@ -87,6 +88,7 @@ private fun runTargetMigrations(
     targetVersion: Int
 ) {
     val migrations = factory.onCreateMigrations()
+    validateMigrations(migrations)
 
     db.useTransaction { tact ->
         var version = currentVersion
@@ -97,9 +99,16 @@ private fun runTargetMigrations(
             val nextMigration = migrations.find { it.version == migrationVersion }!!
 
             nextMigration.onMigrate(tact)
-            nextMigration.onPostMigrate(tact)
         }
 
         db.setDatabaseVersion(tact, targetVersion)
     }.getOrThrow()
+}
+
+private fun validateMigrations(migrations: Array<SQLDatabaseMigration>) {
+    migrations.forEachIndexed { index, migration ->
+        if(migration.version != index + 1) {
+            throw SQLMigrationException("Migration factory must return the migrations in the array in order of their version and no duplicate versions in the files")
+        }
+    }
 }

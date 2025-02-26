@@ -29,36 +29,32 @@ class SQLTransaction internal constructor(
         }
     }
 
-    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>): ResultMapping<Schema> {
+    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
         return runWithTransaction {
-            val results = prepareStatement(context, query).executeQuery()
+            val queryProjection = selection(context)
+
+            val results = prepareStatement(context, query, options.copy(selection = Selection(queryProjection))).executeQuery()
             ResultMapping(context, results)
         }
     }
 
     fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
         runWithTransaction {
-            prepareStatement(context, query).executeUpdate()
+            prepareStatement(context, query, QueryOptions()).executeUpdate()
         }
     }
 
-    private val templateBuilder: TemplateBuilder = {
-        SQLTemplateBinding(it)
-    }
-
-    private fun <Schema> prepareStatement(context: Schema, query: SQLTemplate<Schema>, selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf() }): SQLPreparedStatement {
+    private fun <Schema> prepareStatement(context: Schema, query: SQLTemplate<Schema>, options: QueryOptions): SQLPreparedStatement {
         val factory = query as SQLTemplate.Syntax<Schema>
-        val projection = selection(context)
 
-        val bindingTemplate = factory.factory(Selection(projection), context, templateBuilder) as SQLTemplate.Binding<Schema>
+        val buildTemplate = BuildTemplate()
+        val bindingTemplate = factory.factory(options, context, buildTemplate::statement, buildTemplate::binding) as SQLTemplate.Binding<Schema>
 
-        val fieldList = bindingTemplate.bindings.map {
-            it.first
-        }.toTypedArray()
 
-        val prepStatement = prepare(bindingTemplate.sqlTemplate, fieldList)
-        bindingTemplate.bindings.forEach { pair ->
-            prepStatement.setAny(pair.first, pair.second)
+        val prepStatement = prepare(bindingTemplate.sqlTemplate, bindingTemplate.bindingOrder)
+
+        bindingTemplate.bindingOrder.forEach {
+            prepStatement.setAny(it, bindingTemplate.bindingValueMap[it])
         }
 
         return prepStatement

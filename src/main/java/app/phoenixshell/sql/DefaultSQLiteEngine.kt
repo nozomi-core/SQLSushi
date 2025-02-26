@@ -7,19 +7,18 @@ object DefaultSQLiteEngine: SQLDatabaseEngine {
     }
 
     override fun getCurrentDatabaseVersion(database: SQLConnection): SQLDatabaseVersion {
-        return try {
-            //TODO: if there is an error getting the version, we assume null. This may not be the case. Its possible the version query is wrong, find a better way to handle this
-            database.useTransaction { tact ->
+        //TODO: if there is an error getting the version, we assume null. This may not be the case. Its possible the version query is wrong, find a better way to handle this
+        return database.useTransaction { tact ->
+            try {
                 val result = tact.prepare("select * from _versions where id = 'current';", arrayOf()).executeQuery()
 
                 result.next()
                 val ver = result.getInt("version")
                 SQLDatabaseVersion.CurrentVersion(ver)
-
-            }.getOrThrow()
-        } catch (e: Exception) {
-            SQLDatabaseVersion.EmptyVersion
-        }
+            } catch (e: Exception) {
+                SQLDatabaseVersion.EmptyVersion
+            }
+        }.getOk()
     }
 
     override fun setCurrentDatabaseVersion(transaction: SQLTransaction, version: Int) {

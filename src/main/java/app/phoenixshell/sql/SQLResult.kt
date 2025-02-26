@@ -10,4 +10,8 @@ sealed class SQLResult<out T> {
             is Ok -> value
         }
     }
+
+    internal fun getOk(): T {
+        return (this as Ok).value
+    }
 }
