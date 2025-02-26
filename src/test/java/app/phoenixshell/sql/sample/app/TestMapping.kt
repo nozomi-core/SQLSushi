@@ -5,8 +5,8 @@ import app.phoenixshell.sql.SQLMapper
 val UserMapping: SQLMapper<TestSchema.User, TestModel> = {
     with(schema) {
         TestModel(
-            name = get(nameField),
-            birthYear = get(birthYearField)
+            name = get(name),
+            birthYear = get(birthYear)
         )
     }
 }

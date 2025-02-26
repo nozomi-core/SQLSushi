@@ -1,8 +1,10 @@
 package app.phoenixshell.sql
 
-typealias QueryBuilderFactory<Schema> = (QueryOptions, Schema, Statement, Binding) -> SQLTemplate<Schema>
+//TODO I will clean and reorganise this file later. The API binding works the way I wanted to implement
+
+typealias QueryBuilderFactory<Schema> = (QueryOptions, Schema, Statement, Bind) -> SQLTemplate<Schema>
 typealias Statement = (String) -> SQLTemplateBinding
-typealias Binding = (SQLFieldName<*>) -> String
+typealias Bind = (SQLFieldName<*>) -> String
 
 data class QueryOptions(
     val selection: Selection = Selection(arrayOf()),
@@ -30,7 +32,7 @@ class SQLTemplateBinding(
 ) {
     private val bindingMap = mutableMapOf<SQLFieldName<*>, Any?>()
 
-    fun <Schema> bind(vararg bindings: Pair<SQLFieldName<*>, *>): SQLTemplate<Schema> {
+    fun <Schema> args(vararg bindings: Pair<SQLFieldName<*>, *>): SQLTemplate<Schema> {
         bindings.forEach {
             bindingMap[it.first] = it.second
         }
@@ -65,4 +67,4 @@ open class SQLQueryList {
     }
 }
 
-infix fun <T> SQLFieldName<T>.binds(value: T): Pair<SQLFieldName<T>, T> = this to value
+infix fun <T> SQLFieldName<T>.maps(value: T): Pair<SQLFieldName<T>, T> = this to value

@@ -1,29 +1,29 @@
 package app.phoenixshell.sql.sample.app
 
 import app.phoenixshell.sql.SQLQueryList
-import app.phoenixshell.sql.binds
+import app.phoenixshell.sql.maps
 
 object TestQuery {
     object User: SQLQueryList() {
-        fun insert(name: String, birthYear: Int) = buildQuery<TestSchema.User> { options, schema, statement, binding ->
+        fun insert(QName: String, QBirthYear: Int) = buildQuery<TestSchema.User> { options, schema, statement, binding ->
             with(schema) {
                 statement("""
-                    insert into $tableName(
-                        $derivedField,
-                        $nameField, 
-                        $birthYearField
+                    insert into $table(
+                        $derived,
+                        $name, 
+                        $birthYear
                     )
                     values(
-                        ${binding(derivedField)},
-                        ${binding(nameField)},
-                        ${binding(birthYearField)}
+                        ${binding(derived)},
+                        ${binding(name)},
+                        ${binding(birthYear)}
                         
                    );
-                """).bind(
+                """).args(
 
-                    nameField binds name,
-                    birthYearField binds birthYear,
-                    derivedField binds birthYear - 99
+                    name maps QName,
+                    birthYear maps QBirthYear,
+                    derived maps QBirthYear - 99
                 )
             }
         }
@@ -31,10 +31,10 @@ object TestQuery {
         fun getByAge(birthYear: Int) = buildQuery<TestSchema.User> { options, schema, statement, binding ->
             with(schema) {
                 statement("""
-                    select ${options.selection} from $tableName where $birthYearField = ${binding(birthYearField)} limit ${options.limit}
-                """).bind(
+                    select ${options.selection} from $table where ${this.birthYear} = ${binding(this.birthYear)} limit ${options.limit}
+                """).args(
 
-                    birthYearField binds birthYear
+                    this.birthYear maps birthYear
                 )
             }
         }

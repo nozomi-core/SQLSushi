@@ -6,23 +6,35 @@ import org.junit.jupiter.api.Assertions.*
 
 object ExampleSchema: SQLSchema() {
     object Movie: SQLTableName(this, "movie") {
-        val titleField = string("title")
+        val title = string("title")
         val yearField = int("year")
     }
 }
 
 object ExampleQuery: SQLQueryList() {
-    fun insertMovie(title: String) = buildQuery<ExampleSchema.Movie> { _, schema, statement, binding ->
+    fun insertMovie(QTitle: String) = buildQuery<ExampleSchema.Movie> { _, schema, statement, binding ->
         with(schema) {
             statement("""
-                insert into $tableName value of $titleField = ${binding(titleField)} where createdAt = ${binding(
-                titleField
+                insert into $table value of $title = ${binding(title)} where createdAt = ${binding(
+                title
             )}
             """.trimIndent())
-                .bind(
-                    titleField binds title
+                .args(
+                    title maps QTitle
                 )
         }
+    }
+
+    fun searchMovie(QTitle: String) = buildQuery<ExampleSchema.Movie> { _, schema, statement, bind ->
+        with(schema) {
+            statement("""
+            select from $table * where $title = ${bind(title)}
+        """.trimIndent())
+                .args(
+                    title maps QTitle
+                )
+        }
+
     }
 }
 class TestNamingBinding {
@@ -46,15 +58,13 @@ class TestNamingBinding {
     fun testExampleScript() {
         val order = BindOrder()
 
-        val template = "insert into popcorn, ? title = ${order.place(ExampleSchema.Movie.titleField)}, when year = ${order.place(
+        val template = "insert into popcorn, ? title = ${order.place(ExampleSchema.Movie.title)}, when year = ${order.place(
             ExampleSchema.Movie.yearField
         )}"
 
         val listing = order.list.joinToString(separator = ",")
 
-
-
-        //assertEquals("insert into movie value of title = :title", template)
+        assertEquals("insert into popcorn, ? title = :title, when year = :year", template)
         assertEquals("title,year", listing)
     }
 }

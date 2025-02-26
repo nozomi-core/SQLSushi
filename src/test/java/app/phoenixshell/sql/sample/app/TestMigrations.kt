@@ -10,7 +10,7 @@ object TestMigration001: SQLDatabaseMigration {
     override fun onMigrate(tact: SQLTransaction) {
         TestSchema.User.run {
             tact.exec("""
-                create table $tableName($nameField text, $birthYearField integer, $derivedField integer);
+                create table $table($name text, $birthYear integer, $derived integer);
             """.trimIndent())
         }
     }

@@ -6,4 +6,3 @@ fun <Schema, Data> ResultSet.map(schema: Schema, func: SQLMapper<Schema, Data>):
     val schemaMapper = SchemaMapper(schema, this, func)
     return schemaMapper.toList()
 }
-

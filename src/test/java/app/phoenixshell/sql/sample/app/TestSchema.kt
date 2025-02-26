@@ -5,15 +5,15 @@ import app.phoenixshell.sql.SQLTableName
 
 object TestSchema: SQLSchema() {
     object User: SQLTableName(this,"users") {
-        val nameField = string("name")
-        val birthYearField = int("birth_year")
-        val derivedField = int("derived")
+        val name = string("name")
+        val birthYear = int("birth_year")
+        val derived = int("derived")
 
     }
 
     object Post: SQLTableName(this, "posts") {
         val title = string("title")
         val description = string("description")
-        val createAt = long("created_at")
+        val createdAt = long("created_at")
     }
 }
