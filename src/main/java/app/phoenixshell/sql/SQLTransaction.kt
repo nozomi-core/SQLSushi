@@ -8,7 +8,9 @@ class ResultMapping<Schema>(
     private val results: ResultSet
 ) {
     fun <R> map(mapper: SQLMapper<Schema, R>): List<R> {
-        return results.map(schema, mapper)
+        return results.map(schema, mapper) { e, result ->
+            e.printStackTrace()
+        }
     }
 }
 

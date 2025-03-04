@@ -5,11 +5,25 @@ import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Statement
 
-class SQLPreparedStatement(
+class SQLPreparedStatement private constructor(
     private val sql: String,
     private val preparedStatement: PreparedStatement,
     private val fields: Array<SQLFieldName<*>>
 ) {
+    init {
+        ensureWhereClause()
+    }
+
+    //TODO: Improve this, just a fast solution to stop statements with update and delete from being run without a where, just a band-aid solution
+    private fun ensureWhereClause() {
+        if("update" in sql || "delete" in sql) {
+
+            if("where" !in sql) {
+                throw Exception("SQLStatements for UPDATE or DELETE must contain a WHERE clause")
+            }
+        }
+    }
+
     private inline fun <T> indexSet(field: SQLFieldName<*>, value: T, callback: (Int, T) -> Unit) {
         if(value != null) {
             val searchIndex = fields.indexOf(field)
@@ -103,7 +117,7 @@ class SQLPreparedStatement(
     companion object {
 
         fun create(conn: Connection, sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
-            return SQLPreparedStatement(sql, conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS), fields)
+            return SQLPreparedStatement(sql.lowercase(), conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS), fields)
         }
     }
 }

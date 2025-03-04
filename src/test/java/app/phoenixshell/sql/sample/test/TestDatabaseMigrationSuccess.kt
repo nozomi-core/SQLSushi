@@ -55,4 +55,20 @@ class TestDatabaseMigration {
             it.exec("INSERT INTO success(a1,a2,a3) values('title', 5, 'sample')")
         }.getOrThrow()
     }
+
+    @Test
+    fun testMigrationTransactionFail() {
+        val db = createDatabase(
+            targetVersion = 2,
+            name = "migration-success.db",
+            mode = DatabaseMode.Memory,
+            connection = DefaultSQLConnection,
+            migrations = LocalMigrationSuccess,
+            engine = DefaultSQLiteEngine
+        )
+
+        db.useTransaction {
+            it.exec("INSERT success(a1,a2,a3) values('title', 5, 'sample')")
+        }.getOrThrow()
+    }
 }

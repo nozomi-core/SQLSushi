@@ -7,7 +7,8 @@ typealias SQLMapper<Schema, Data> = SchemaMapper<Schema, Data>.() -> Data
 class SchemaMapper<Schema, Data>(
     val schema: Schema,
     private val resultSet: ResultSet,
-    private val mapper: SQLMapper<Schema, Data>
+    private val mapper: SQLMapper<Schema, Data>,
+    private val errorCallback: (Exception, ResultSet) -> Unit
 ) {
     fun get(name: SQLFieldName<Int>): Int {
         return resultSet.getInt(name.field)
@@ -37,7 +38,11 @@ class SchemaMapper<Schema, Data>(
         val list = mutableListOf<Data>()
 
         while(resultSet.next()) {
-            list.add(mapper(this))
+            try {
+                list.add(mapper(this))
+            } catch (e: Exception) {
+                errorCallback(e, resultSet)
+            }
         }
 
         return list
