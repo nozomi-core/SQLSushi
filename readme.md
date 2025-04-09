@@ -3,8 +3,9 @@ SQLSushi is a lightweight declarative functional approach to handling SQL querie
 It works by defining everything at runtime so that no build step is required to bind the SQL queries in a typesafe manner
 
 ## 1. Define the Schema
-The first step is to define the table schema as follows
+To define the table schema, create a singleton and extend the `SQLSchema` class
 
+The Standard convention is to use a singleton `Schema` object that contains all the field names of the SQL table names and column types.
 ````kotlin
 object Schema: SQLSchema() {
     object User: SQLTableName(this, "user") {
@@ -18,9 +19,11 @@ object Schema: SQLSchema() {
     }
 }
 ````
-The convention is to define a singleton `Schema` object that contains all the field names of the SQL table names and column types.
 
 ## 2. Create the Migrations
+Next step is to create the version migrations using the `SQLDatabaseMigrationFactory`.
+
+You must supply and array with all the migration objects and the version numbers
 
 ````kotlin
 object MyMigrations: SQLDatabaseMigrationFactory {
@@ -41,9 +44,10 @@ object Migration1: SQLDatabaseMigration {
     }
 }
 ````
-Next you must create a `SQLDatabaseMigrationFactory` which contains all the migration statements for each version.
 
 ## 3. Create the Database
+The target version is the current version of the database. When you increment this value, the database will attempt to migrate the
+database, based on the migrations provided
 ````kotlin
 val db = createDatabase(
     targetVersion = 1,
@@ -54,10 +58,14 @@ val db = createDatabase(
     engine = DefaultSQLiteEngine
 )
 ````
-The target version is the current version of the database. When you increment this value, the database will attempt to migrate the 
-database, based on the migrations provided
 
 ## 4. Create the queries
+Once the database is setup, you can create and declare functional SQL Queries by creating an object that extends 
+`SQLQueryList` and using the `buildQuery` method to define the SQL statement and any field bindings with their respective
+values.
+
+Note: The `binding` method creates the named placeholder for the field and the `args` method supplies the placeholder with the typed value.
+If you call `binding` then there must be a call to `maps` in the args block, otherwise the statement can not be bound properly
 
 ````kotlin
 object UserQuery: SQLQueryList() {
@@ -98,6 +106,9 @@ object UserQuery: SQLQueryList() {
 ````
 
 ## 5. Create the mapping
+Once the query statements are setup, you then have to create a mapping from the fields to the Data model like so:
+
+Here you can the `get` method on an SQL field name to return its value.
 ````kotlin
 data class UserModel(val firstName: String, val lastName: String, val createdAt: Long)
 
@@ -114,6 +125,7 @@ val UserMapping: SQLMapper<Schema.User, UserModel> = {
 
 
 ## 6. Use the queries
+You can then call the SQL queries like so:
 ````kotlin
  val db = createDatabase(
     targetVersion = 1,
@@ -137,3 +149,13 @@ val resultFind = db.useTransaction {
     it.query(Schema.User, findQuery, QueryOptions()).map(UserMapping)
 }
 ````
+
+## Advantages
+The advantages of this library compared to other ones is that
+1. It's lightweight and does not need code generation tooling
+2. 100% flexible, because it takes a typesafe functional approach to defining queries without an ORM and directly mapping the data from the queries. No black magic behind the scenes
+3. When you change the table schema, if there are any breaking changes to the queries, it won't compile the application since all methods are type safe and defined at compile time
+
+## Disadvantages
+1. Some syntax is verbose and adds more boilerplate because we don't use code generation and has to be typesafe
+2. Migrations and queries still require testing because don't use ORM approach of using an entity model so the database schema may differ from the queries
