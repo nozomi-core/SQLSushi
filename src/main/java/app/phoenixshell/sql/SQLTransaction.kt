@@ -31,12 +31,12 @@ class SQLTransaction internal constructor(
         }
     }
 
-    fun <Schema> query(context: Schema, query: SQLTemplate<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
+    fun <Schema> query(schema: Schema, query: SQLTemplate<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
         return runWithTransaction {
-            val queryProjection = selection(context)
+            val queryProjection = selection(schema)
 
-            val results = prepareStatement(context, query, options.copy(selection = Selection(queryProjection))).executeQuery()
-            ResultMapping(context, results)
+            val results = prepareStatement(schema, query, options.copy(selection = Selection(queryProjection))).executeQuery()
+            ResultMapping(schema, results)
         }
     }
 

@@ -13,8 +13,8 @@ fun createDatabase(
     name: String,
     mode: DatabaseMode,
     connection: SQLDatabaseConnection,
-    migrations: SQLDatabaseMigrationFactory? = null,
-    engine: SQLDatabaseEngine? = null
+    migrations: SQLDatabaseMigrationFactory,
+    engine: SQLDatabaseEngine
 ): SQLDatabase {
 
     val options = SQLDatabaseOptions(

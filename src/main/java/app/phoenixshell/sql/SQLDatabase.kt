@@ -4,7 +4,7 @@ class SQLDatabase internal constructor(
     private val connection: SQLConnection,
     private val engine: SQLDatabaseEngine?
 ) {
-    fun <T> useTransaction(transaction: (SQLTransaction) -> T): SQLResult<T> = connection.useTransaction(transaction)
+    fun <T> useTransaction(transaction:  (SQLTransaction) -> T): SQLResult<T> = connection.useTransaction(transaction)
     fun getDatabaseVersion() = engine!!.getCurrentDatabaseVersion(connection)
     internal fun setDatabaseVersion(transaction: SQLTransaction, version: Int) = engine!!.setCurrentDatabaseVersion(transaction, version)
 
