@@ -102,7 +102,7 @@ private fun runTargetMigrations(
         }
 
         db.setDatabaseVersion(tact, targetVersion)
-    }.getOrThrow()
+    }
 }
 
 private fun validateMigrations(migrations: Array<SQLDatabaseMigration>) {

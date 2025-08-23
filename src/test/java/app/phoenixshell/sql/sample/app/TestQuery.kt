@@ -5,7 +5,7 @@ import app.phoenixshell.sql.maps
 
 object TestQuery {
     object User: SQLQueryList() {
-        fun insert(QName: String, QBirthYear: Int) = buildQuery<TestSchema.User> { options, schema, statement, binding ->
+        fun insert(QName: String, QBirthYear: Int) = buildQuery<Tables.User> { options, schema, statement, bind ->
             with(schema) {
                 statement("""
                     insert into $table(
@@ -14,9 +14,9 @@ object TestQuery {
                         $birthYear
                     )
                     values(
-                        ${binding(derived)},
-                        ${binding(name)},
-                        ${binding(birthYear)}
+                        ${bind(derived)},
+                        ${bind(name)},
+                        ${bind(birthYear)}
                         
                    );
                 """).args(
@@ -28,10 +28,10 @@ object TestQuery {
             }
         }
 
-        fun getByAge(birthYear: Int) = buildQuery<TestSchema.User> { options, schema, statement, binding ->
+        fun getByAge(birthYear: Int) = buildQuery<Tables.User> { options, schema, statement, bind ->
             with(schema) {
                 statement("""
-                    select ${options.selection} from $table where ${this.birthYear} = ${binding(this.birthYear)} limit ${options.limit}
+                    select ${options.selection} from $table where ${this.birthYear} = ${bind(this.birthYear)} limit ${options.limit}
                 """).args(
 
                     this.birthYear maps birthYear

@@ -1,17 +1,17 @@
 package app.phoenixshell.sql.sample.app
 
 import app.phoenixshell.sql.SQLSchema
-import app.phoenixshell.sql.SQLTableName
+import app.phoenixshell.sql.SQLTable
 
-object TestSchema: SQLSchema() {
-    object User: SQLTableName(this,"users") {
+object Tables: SQLSchema() {
+    object User: SQLTable(this,"users") {
         val name = string("name")
-        val birthYear = int("birth_year")
+        val birthYear = int("birthYear")
         val derived = int("derived")
 
     }
 
-    object Post: SQLTableName(this, "posts") {
+    object Post: SQLTable(this, "posts") {
         val title = string("title")
         val description = string("description")
         val createdAt = long("created_at")

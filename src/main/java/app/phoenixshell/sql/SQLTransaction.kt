@@ -1,16 +1,54 @@
 package app.phoenixshell.sql
 
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.serializer
 import java.sql.Connection
 import java.sql.ResultSet
 
+val JsonDecoder = Json {
+    ignoreUnknownKeys = true
+}
+
 class ResultMapping<Schema>(
-    private val schema: Schema,
-    private val results: ResultSet
+    val schema: Schema,
+    val results: ResultSet
 ) {
     fun <R> map(mapper: SQLMapper<Schema, R>): List<R> {
         return results.map(schema, mapper) { e, result ->
             e.printStackTrace()
         }
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    inline fun <reified T> decodeSingle(): T {
+        val columnCount = results.metaData.columnCount
+        val jsonMap = mutableMapOf<String, JsonElement>()
+
+
+        for (i in 1..columnCount) {
+            val columnName = results.metaData.getColumnLabel(i)
+            val value = results.getObject(i)
+
+            jsonMap[columnName] = when (value) {
+                null -> JsonNull
+                is Int -> JsonPrimitive(value)
+                is Long -> JsonPrimitive(value)
+                is Boolean -> JsonPrimitive(value)
+                is Double -> JsonPrimitive(value)
+                is Float -> JsonPrimitive(value)
+                is String -> JsonPrimitive(value)
+                else -> JsonPrimitive(value.toString()) // or handle custom types
+            }
+        }
+
+        val json = JsonObject(jsonMap)
+        return JsonDecoder.decodeFromJsonElement(serializer(), json)
     }
 }
 

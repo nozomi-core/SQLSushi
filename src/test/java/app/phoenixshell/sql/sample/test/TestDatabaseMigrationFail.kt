@@ -1,7 +1,7 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.*
-import app.phoenixshell.sql.sample.app.TestSchema
+import app.phoenixshell.sql.sample.app.Tables
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 
@@ -9,7 +9,7 @@ object LocalMigrationFail001: SQLDatabaseMigration {
     override val version: Int = 1
 
     override fun onMigrate(tact: SQLTransaction) {
-        TestSchema.User.run {
+        Tables.User.run {
             tact.exec("""
                 create table first(title text);
             """.trimIndent())
@@ -21,7 +21,7 @@ object LocalMigrationFail002: SQLDatabaseMigration {
     override val version: Int = 1
 
     override fun onMigrate(tact: SQLTransaction) {
-        TestSchema.User.run {
+        Tables.User.run {
             tact.exec("""
                 create table next(title text);
             """.trimIndent())

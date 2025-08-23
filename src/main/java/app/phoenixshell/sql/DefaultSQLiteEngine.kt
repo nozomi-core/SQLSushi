@@ -18,7 +18,7 @@ object DefaultSQLiteEngine: SQLDatabaseEngine {
             } catch (e: Exception) {
                 SQLDatabaseVersion.EmptyVersion
             }
-        }.getOk()
+        }
     }
 
     override fun setCurrentDatabaseVersion(transaction: SQLTransaction, version: Int) {

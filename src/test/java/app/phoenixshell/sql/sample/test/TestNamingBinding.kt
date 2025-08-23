@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 
 object ExampleSchema: SQLSchema() {
-    object Movie: SQLTableName(this, "movie") {
+    object Movie: SQLTable(this, "movie") {
         val title = string("title")
         val yearField = int("year")
     }

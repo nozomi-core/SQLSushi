@@ -8,7 +8,7 @@ object TestMigration001: SQLDatabaseMigration {
     override val version: Int = 1
 
     override fun onMigrate(tact: SQLTransaction) {
-        TestSchema.User.run {
+        Tables.User.run {
             tact.exec("""
                 create table $table($name text, $birthYear integer, $derived integer);
             """.trimIndent())

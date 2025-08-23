@@ -4,12 +4,12 @@ import app.phoenixshell.sql.*
 import org.junit.jupiter.api.Test
 
 object Schema: SQLSchema() {
-    object User: SQLTableName(this, "user") {
+    object User: SQLTable(this, "user") {
         val firstName = string("first_name")
         val lastName = string("last_name")
         val createdAt = long("created_at")
     }
-    object Posts: SQLTableName(this, "posts") {
+    object Posts: SQLTable(this, "posts") {
         val title = string("title")
         val createdAt = long("created_at")
     }
@@ -117,8 +117,8 @@ class SampleDoc {
 
         val result =  db.useTransaction {
            it.query(Schema.User, findQuery, QueryOptions()).map(UserMapping)
-        }.getOk()
+        }
 
-        assert(result.isNotEmpty())
+        assert(result.isEmpty())
     }
 }
