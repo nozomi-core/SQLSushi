@@ -39,15 +39,15 @@ class TestCreateSampleDatabase {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLConnection,
             migrations = buildMigrations {
-                version(1) {
-                    """
+                version(1) { tact ->
+                    tact.exec("""
                         create table example1(name text);
-                    """
+                    """)
                 }
-                version(2) {
-                    """
+                version(2) { tact ->
+                    tact.exec("""
                         ALTER TABLE example1 ADD COLUMN age INTEGER;
-                    """
+                    """)
                 }
             },
             engine = DefaultSQLiteEngine
@@ -56,7 +56,6 @@ class TestCreateSampleDatabase {
         db.useTransaction { tact ->
             tact.exec("insert into example1(name, age) values ('Hello there', 81);")
         }
-
     }
 
     @Test

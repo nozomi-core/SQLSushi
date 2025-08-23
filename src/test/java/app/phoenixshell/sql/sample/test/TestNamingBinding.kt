@@ -11,7 +11,7 @@ object ExampleSchema: SQLSchema() {
     }
 }
 
-object ExampleQuery: SQLQueryList() {
+object ExampleQuery {
     fun insertMovie(QTitle: String) = buildQuery<ExampleSchema.Movie> { _, schema, statement, binding ->
         with(schema) {
             statement("""

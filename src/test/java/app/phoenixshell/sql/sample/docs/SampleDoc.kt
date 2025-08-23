@@ -45,7 +45,7 @@ val UserMapping: SQLMapper<Schema.User, UserModel> = {
     }
 }
 
-object UserQuery: SQLQueryList() {
+object UserQuery {
     fun insert(vFirstName: String, vLastName: String) = buildQuery<Schema.User> { options, schema, statement, binding ->
 
         val vCreatedAt = System.currentTimeMillis()

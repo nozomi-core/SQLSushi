@@ -1,10 +1,10 @@
 package app.phoenixshell.sql.sample.app
 
-import app.phoenixshell.sql.SQLQueryList
+import app.phoenixshell.sql.buildQuery
 import app.phoenixshell.sql.maps
 
 object TestQuery {
-    object User: SQLQueryList() {
+    object User {
         fun insert(QName: String, QBirthYear: Int) = buildQuery<Tables.User> { options, schema, statement, bind ->
             with(schema) {
                 statement("""
