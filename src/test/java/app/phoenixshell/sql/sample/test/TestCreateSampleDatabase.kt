@@ -5,12 +5,11 @@ import app.phoenixshell.sql.sample.app.TestMigrations
 import app.phoenixshell.sql.sample.app.TestQuery
 import app.phoenixshell.sql.sample.app.TestModel
 import app.phoenixshell.sql.sample.app.UserMapping
-import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import java.sql.ResultSet
 import java.util.UUID
 
-@Serializable
 data class SimpleData(val text: String)
 
 class TestCreateSampleDatabase {
@@ -24,7 +23,8 @@ class TestCreateSampleDatabase {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         assertEquals("version=1", db.getDatabaseVersion().toString())
@@ -49,7 +49,8 @@ class TestCreateSampleDatabase {
                     """)
                 }
             },
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         db.useTransaction { tact ->
@@ -66,7 +67,8 @@ class TestCreateSampleDatabase {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         db.useTransaction { tact ->
@@ -87,13 +89,24 @@ class TestCreateSampleDatabase {
     @Test
     fun testInsertDecode() {
 
+        val localDecoder = object : ResultDecoder {
+            override fun <T> decode(kClass: Class<T>, resultSet: ResultSet): T {
+                return TestModel(
+                    name = resultSet.getString("name"),
+                    birthYear = resultSet.getInt("birthYear")
+                ) as T
+            }
+
+        }
+
         val db = createDatabase(
             targetVersion = 1,
             name = "sample.db",
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = localDecoder
         )
 
         db.useTransaction { tact ->
@@ -118,7 +131,8 @@ class TestCreateSampleDatabase {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         db.useTransaction { tact ->

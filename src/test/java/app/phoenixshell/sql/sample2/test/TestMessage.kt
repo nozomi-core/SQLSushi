@@ -3,6 +3,8 @@ package app.phoenixshell.sql.sample2.test
 import app.phoenixshell.sql.DatabaseMode
 import app.phoenixshell.sql.DefaultSQLiteConnection
 import app.phoenixshell.sql.DefaultSQLiteEngine
+import app.phoenixshell.sql.ResultDecoder
+import app.phoenixshell.sql.ResultDecoderNotImplemented
 import app.phoenixshell.sql.buildMigrations
 import app.phoenixshell.sql.createDatabase
 import app.phoenixshell.sql.sample2.AppTable
@@ -10,6 +12,17 @@ import app.phoenixshell.sql.sample2.ConversationModel
 import app.phoenixshell.sql.sample2.ConversationQuery
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import java.sql.ResultSet
+
+val conversationDecoder = object : ResultDecoder {
+    override fun <T> decode(kClass: Class<T>, resultSet: ResultSet): T {
+        return ConversationModel(
+            message = resultSet.getString(AppTable.Conversation.message.field),
+            date = resultSet.getInt(AppTable.Conversation.date.field)
+        ) as T
+    }
+
+}
 
 class TestMessage {
 
@@ -27,7 +40,8 @@ class TestMessage {
                     }
                 }
             },
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         val action = ConversationQuery.insert(ConversationModel("message123", 123))
@@ -51,7 +65,8 @@ class TestMessage {
                     }
                 }
             },
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = conversationDecoder
         )
 
 
@@ -82,7 +97,8 @@ class TestMessage {
                     }
                 }
             },
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = conversationDecoder
         )
 
         db.useTransaction { tact ->

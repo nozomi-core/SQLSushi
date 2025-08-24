@@ -49,7 +49,8 @@ class TestDatabaseMigrationSuccess {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = LocalMigrationSuccess,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         db.useTransaction {
@@ -66,7 +67,8 @@ class TestDatabaseMigrationSuccess {
                 mode = DatabaseMode.Memory,
                 connection = DefaultSQLiteConnection,
                 migrations = LocalMigrationSuccess,
-                engine = DefaultSQLiteEngine
+                engine = DefaultSQLiteEngine,
+                resultDecoder = ResultDecoderNotImplemented
             )
 
             db.useTransaction {

@@ -92,7 +92,8 @@ class SampleDoc {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = MyMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         val insertUser = UserQuery.insert("MyFirstname", "MyLastname")
@@ -110,7 +111,8 @@ class SampleDoc {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = MyMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         val findQuery = UserQuery.findFirstName("MyFirstname")

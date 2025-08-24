@@ -58,7 +58,8 @@ class TestDatabaseMigrationFail {
                 mode = DatabaseMode.Memory,
                 connection = DefaultSQLiteConnection,
                 migrations = LocalMigrationFailOrder,
-                engine = DefaultSQLiteEngine
+                engine = DefaultSQLiteEngine,
+                resultDecoder = ResultDecoderNotImplemented
             )
             false
         } catch (e: SQLMigrationException) {
@@ -77,7 +78,8 @@ class TestDatabaseMigrationFail {
                 mode = DatabaseMode.Memory,
                 connection = DefaultSQLiteConnection,
                 migrations = LocalMigrationFailSameVersionsDef,
-                engine = DefaultSQLiteEngine
+                engine = DefaultSQLiteEngine,
+                resultDecoder = ResultDecoderNotImplemented
             )
             false
         } catch (e: SQLMigrationException) {

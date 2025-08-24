@@ -5,9 +5,7 @@ import app.phoenixshell.sql.SQLTable
 import app.phoenixshell.sql.buildMapper
 import app.phoenixshell.sql.buildQuery
 import app.phoenixshell.sql.maps
-import kotlinx.serialization.Serializable
 
-@Serializable
 data class ConversationModel(
     val message: String,
     val date: Int

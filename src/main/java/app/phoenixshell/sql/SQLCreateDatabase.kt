@@ -14,7 +14,8 @@ fun createDatabase(
     mode: DatabaseMode,
     connection: SQLDatabaseConnection,
     migrations: SQLDatabaseMigrationFactory,
-    engine: SQLDatabaseEngine
+    engine: SQLDatabaseEngine,
+    resultDecoder: ResultDecoder
 ): SQLDatabase {
 
     val options = SQLDatabaseOptions(
@@ -37,7 +38,7 @@ fun createDatabase(
         options.connection.onCreateConnection(it)
     }
 
-    val connectionWrapper = SQLConnection(dataSource).apply {
+    val connectionWrapper = SQLConnection(dataSource, resultDecoder).apply {
         setupEngine(this, options)
     }
 
