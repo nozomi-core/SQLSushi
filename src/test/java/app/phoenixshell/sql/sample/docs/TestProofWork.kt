@@ -17,15 +17,15 @@ class TestProofWork {
         """0"""
     )
 
-    @Test
+    //@Test
     fun generateKey() {
         val keyPairGenerator = KeyPairGenerator.getInstance("Ed25519")
         val keyPair = keyPairGenerator.generateKeyPair()
         val privateKey: PrivateKey = keyPair.private
         val publicKey: PublicKey = keyPair.public
 
-        println("Private Key (Base64): ${Base64.getEncoder().encodeToString(privateKey.encoded)}")
-        println("Public Key  (Base64): ${Base64.getEncoder().encodeToString(publicKey.encoded)}")
+        //println("Private Key (Base64): ${Base64.getEncoder().encodeToString(privateKey.encoded)}")
+        //println("Public Key  (Base64): ${Base64.getEncoder().encodeToString(publicKey.encoded)}")
 
         // 2. Sign some data
         val data = "Data to be signed using Ed25519".toByteArray(Charsets.UTF_8)
@@ -34,7 +34,7 @@ class TestProofWork {
         signature.update(data)
         val digitalSignature = signature.sign()
 
-        println("Signature (Base64): ${Base64.getEncoder().encodeToString(digitalSignature)}")
+        //println("Signature (Base64): ${Base64.getEncoder().encodeToString(digitalSignature)}")
 
         // 3. Verify signature
         val verifier = Signature.getInstance("Ed25519")

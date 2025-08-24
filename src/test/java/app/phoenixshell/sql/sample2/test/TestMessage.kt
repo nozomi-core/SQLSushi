@@ -18,7 +18,7 @@ class TestMessage {
         val db = createDatabase(
             targetVersion = 1,
             name = "test_message.db",
-            mode = DatabaseMode.External,
+            mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = buildMigrations {
                 version(1) { tact ->
@@ -57,7 +57,7 @@ class TestMessage {
 
 
         db.useTransaction { tact ->
-            tact.insert(ConversationQuery.insert(ConversationModel("message", 123)))
+            tact.insert(ConversationQuery.insert(ConversationModel("message123", 123)))
         }
 
         val single = db.useTransaction { tact ->
