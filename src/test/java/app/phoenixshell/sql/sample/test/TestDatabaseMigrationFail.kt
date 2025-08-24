@@ -56,7 +56,7 @@ class TestDatabaseMigrationFail {
                 targetVersion = 1,
                 name = "migration-fail-order.db",
                 mode = DatabaseMode.Memory,
-                connection = DefaultSQLConnection,
+                connection = DefaultSQLiteConnection,
                 migrations = LocalMigrationFailOrder,
                 engine = DefaultSQLiteEngine
             )
@@ -75,7 +75,7 @@ class TestDatabaseMigrationFail {
                 targetVersion = 1,
                 name = "migration-fail-versions.db",
                 mode = DatabaseMode.Memory,
-                connection = DefaultSQLConnection,
+                connection = DefaultSQLiteConnection,
                 migrations = LocalMigrationFailSameVersionsDef,
                 engine = DefaultSQLiteEngine
             )

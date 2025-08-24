@@ -24,10 +24,3 @@ open class SQLTable(private val schema: SQLSchema, val table: String) {
         return SQLFieldName(this, name, T::class.java)
     }
 }
-inline fun <reified T : SQLTable> SQLTable.insert(tact: SQLTransaction, query: SQLTemplate<T>) {
-    return tact.insert(this, query as SQLTemplate<SQLTable>)
-}
-
-inline fun <reified T : SQLTable> SQLTable.query(tact: SQLTransaction, query: SQLTemplate<T>): ResultMapping<T> {
-    return tact.query(this, query as SQLTemplate<SQLTable>) as ResultMapping<T>
-}

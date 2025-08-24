@@ -2,7 +2,7 @@ package app.phoenixshell.sql
 
 import java.sql.Connection
 
-object DefaultSQLConnection: SQLDatabaseConnection {
+object DefaultSQLiteConnection: SQLDatabaseConnection {
     override fun createJdbcUrl(options: SQLDatabaseOptions): String {
         return if(options.mode is DatabaseMode.Memory) {
             "jdbc:sqlite::memory:"

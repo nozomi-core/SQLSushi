@@ -3,7 +3,6 @@ package app.phoenixshell.sql.sample.test
 import app.phoenixshell.sql.*
 import app.phoenixshell.sql.sample.app.TestMigrations
 import app.phoenixshell.sql.sample.app.TestQuery
-import app.phoenixshell.sql.sample.app.Tables
 import app.phoenixshell.sql.sample.app.TestModel
 import app.phoenixshell.sql.sample.app.UserMapping
 import kotlinx.serialization.Serializable
@@ -23,7 +22,7 @@ class TestCreateSampleDatabase {
             targetVersion = 1,
             name = "sample.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
             engine = DefaultSQLiteEngine
         )
@@ -37,7 +36,7 @@ class TestCreateSampleDatabase {
             targetVersion = 2,
             name = "sample.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = buildMigrations {
                 version(1) { tact ->
                     tact.exec("""
@@ -65,18 +64,18 @@ class TestCreateSampleDatabase {
             targetVersion = 1,
             name = "sample.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
             engine = DefaultSQLiteEngine
         )
 
         db.useTransaction { tact ->
-            tact.insert(Tables.User, TestQuery.User.insert("Smith", 99))
-            tact.insert(Tables.User, TestQuery.User.insert("Example", 99))
+            tact.insert(TestQuery.User.insert("Smith", 99))
+            tact.insert( TestQuery.User.insert("Example", 99))
         }
 
         val result = db.useTransaction { tact ->
-            tact.query(Tables.User, TestQuery.User.getByAge(99), QueryOptions(limit = 1)).map(UserMapping)
+            tact.query(TestQuery.User.getByAge(99), QueryOptions(limit = 1)).map(UserMapping)
 
         }
 
@@ -92,18 +91,18 @@ class TestCreateSampleDatabase {
             targetVersion = 1,
             name = "sample.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
             engine = DefaultSQLiteEngine
         )
 
         db.useTransaction { tact ->
-            Tables.User.insert(tact, TestQuery.User.insert("Smith2", 99))
-            Tables.User.insert(tact, TestQuery.User.insert("Example", 99))
+            tact.insert(TestQuery.User.insert("Smith2", 99))
+            tact.insert(TestQuery.User.insert("Example", 99))
         }
 
         val result = db.useTransaction { tact ->
-            Tables.User.query(tact, TestQuery.User.getByAge(99)).decodeSingle<TestModel>()
+           tact.query(TestQuery.User.getByAge(99)).decodeSingle<TestModel>()
         }
 
         assertEquals("Smith2", result.name)
@@ -117,7 +116,7 @@ class TestCreateSampleDatabase {
             targetVersion = 1,
             name = "insert100.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
             engine = DefaultSQLiteEngine
         )
@@ -126,12 +125,12 @@ class TestCreateSampleDatabase {
             repeat(100) {
 
 
-                tact.insert(Tables.User, TestQuery.User.insert(UUID.randomUUID().toString(), 99))
+                tact.insert(TestQuery.User.insert(UUID.randomUUID().toString(), 99))
             }
         }
 
         val result = db.useTransaction { tact ->
-            tact.query(Tables.User, TestQuery.User.getByAge(99), QueryOptions(limit = 5)).map(UserMapping)
+            tact.query(TestQuery.User.getByAge(99), QueryOptions(limit = 5)).map(UserMapping)
         }
 
         assertEquals(5, result.size)

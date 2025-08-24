@@ -4,9 +4,10 @@ import app.phoenixshell.sql.SQLSchema
 import app.phoenixshell.sql.SQLTable
 import app.phoenixshell.sql.buildMapper
 import app.phoenixshell.sql.buildQuery
-import app.phoenixshell.sql.buildTemplate
 import app.phoenixshell.sql.maps
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ConversationModel(
     val message: String,
     val date: Int
@@ -42,17 +43,11 @@ object ConversationQuery {
         }
     }
 
-    fun select() = buildQuery(AppTable.Conversation) { opt, table, query, bind ->
-        query("""
-            
-        """.trimIndent()).args()
-    }
-
-    fun all() = buildTemplate<AppTable.Conversation> { options, schema, statement, bind ->
-        with(schema) {
-            statement("""
-                    select * from $table
-                """).args()
+    fun all() = buildQuery(AppTable.Conversation) { opt, table, query, bind ->
+        with(table) {
+            query("""
+                select * from $table
+           """).args()
         }
     }
 }

@@ -2,7 +2,7 @@ package app.phoenixshell.sql
 
 import com.zaxxer.hikari.HikariDataSource
 
-class SQLConnection(
+class SQLConnection internal constructor(
     private val dataSource: HikariDataSource,
 ) {
     fun <T> useTransaction(transaction: (SQLTransaction) -> T): T {

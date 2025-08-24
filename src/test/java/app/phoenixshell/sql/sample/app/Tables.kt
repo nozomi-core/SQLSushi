@@ -10,10 +10,4 @@ object Tables: SQLSchema() {
         val derived = int("derived")
 
     }
-
-    object Post: SQLTable(this, "posts") {
-        val title = string("title")
-        val description = string("description")
-        val createdAt = long("created_at")
-    }
 }

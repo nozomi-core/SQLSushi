@@ -47,7 +47,7 @@ class TestDatabaseMigrationSuccess {
             targetVersion = 2,
             name = "migration-success.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = LocalMigrationSuccess,
             engine = DefaultSQLiteEngine
         )
@@ -64,7 +64,7 @@ class TestDatabaseMigrationSuccess {
                 targetVersion = 2,
                 name = "migration-success.db",
                 mode = DatabaseMode.Memory,
-                connection = DefaultSQLConnection,
+                connection = DefaultSQLiteConnection,
                 migrations = LocalMigrationSuccess,
                 engine = DefaultSQLiteEngine
             )

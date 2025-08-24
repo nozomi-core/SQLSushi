@@ -46,7 +46,7 @@ val UserMapping: SQLMapper<Schema.User, UserModel> = {
 }
 
 object UserQuery {
-    fun insert(vFirstName: String, vLastName: String) = buildTemplate<Schema.User> { options, schema, statement, binding ->
+    fun insert(vFirstName: String, vLastName: String) = buildQuery(Schema.User) { options, schema, statement, binding ->
 
         val vCreatedAt = System.currentTimeMillis()
 
@@ -70,7 +70,7 @@ object UserQuery {
         }
     }
 
-    fun findFirstName(vFirstName: String) = buildTemplate<Schema.User> { _, schema, statement, binding ->
+    fun findFirstName(vFirstName: String) = buildQuery(Schema.User) { _, schema, statement, binding ->
         with(schema) {
             statement("""
                 select * from $table where $firstName = ${binding(firstName)}
@@ -90,15 +90,15 @@ class SampleDoc {
             targetVersion = 1,
             name = "sampledoc.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = MyMigrations,
             engine = DefaultSQLiteEngine
         )
 
         val insertUser = UserQuery.insert("MyFirstname", "MyLastname")
 
-        db.useTransaction {
-            it.insert(Schema.User, insertUser)
+        db.useTransaction { tact ->
+            tact.insert(insertUser)
         }
     }
 
@@ -108,7 +108,7 @@ class SampleDoc {
             targetVersion = 1,
             name = "sampledoc.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = MyMigrations,
             engine = DefaultSQLiteEngine
         )
@@ -116,7 +116,7 @@ class SampleDoc {
         val findQuery = UserQuery.findFirstName("MyFirstname")
 
         val result =  db.useTransaction {
-           it.query(Schema.User, findQuery, QueryOptions()).map(UserMapping)
+           it.query(findQuery).map(UserMapping)
         }
 
         assert(result.isEmpty())

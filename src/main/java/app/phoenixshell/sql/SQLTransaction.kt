@@ -50,6 +50,15 @@ class ResultMapping<Schema>(
         val json = JsonObject(jsonMap)
         return JsonDecoder.decodeFromJsonElement(serializer(), json)
     }
+
+    @OptIn(InternalSerializationApi::class)
+    inline fun <reified T> decodeList(): List<T> {
+        return buildList {
+            while (results.next()) {
+                add(decodeSingle())
+            }
+        }
+    }
 }
 
 class SQLTransaction internal constructor(
@@ -57,7 +66,7 @@ class SQLTransaction internal constructor(
 ){
     private var isOpen = true
 
-    fun prepare(sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
+    internal fun prepare(sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
         return runWithTransaction {
             SQLPreparedStatement.create(connection, sql, fields)
         }
@@ -69,7 +78,7 @@ class SQLTransaction internal constructor(
         }
     }
 
-    fun <Schema> query(schema: Schema, query: SQLTemplate<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
+    internal fun <Schema> query(schema: Schema, query: SQLTemplate<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
         return runWithTransaction {
             val queryProjection = selection(schema)
 
@@ -78,11 +87,15 @@ class SQLTransaction internal constructor(
         }
     }
 
+    fun <Schema> query(query: SQLQuery<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
+        return query(query.table, query.template, options, selection)
+    }
+
     fun <Schema> insert(query: SQLQuery<Schema>) {
         return insert(query.table, query.template)
     }
 
-    fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
+    internal fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
         runWithTransaction {
             prepareStatement(context, query, QueryOptions()).executeUpdate()
         }
