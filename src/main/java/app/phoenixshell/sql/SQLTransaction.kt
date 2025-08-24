@@ -69,3 +69,8 @@ class SQLTransaction internal constructor(
         isOpen = false
     }
 }
+
+inline fun <T: SQLTable> T.on(tact: SQLTransaction, callback: T.() -> String) {
+    val sql = callback(this)
+    tact.exec(sql)
+}

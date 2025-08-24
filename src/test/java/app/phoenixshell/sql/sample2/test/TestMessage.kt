@@ -5,8 +5,11 @@ import app.phoenixshell.sql.DefaultSQLiteConnection
 import app.phoenixshell.sql.DefaultSQLiteEngine
 import app.phoenixshell.sql.ResultDecoder
 import app.phoenixshell.sql.ResultDecoderNotImplemented
+import app.phoenixshell.sql.SQLTable
+import app.phoenixshell.sql.SQLTransaction
 import app.phoenixshell.sql.buildMigrations
 import app.phoenixshell.sql.createDatabase
+import app.phoenixshell.sql.on
 import app.phoenixshell.sql.sample2.AppTable
 import app.phoenixshell.sql.sample2.ConversationModel
 import app.phoenixshell.sql.sample2.ConversationQuery
@@ -34,10 +37,12 @@ class TestMessage {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = buildMigrations {
-                version(1) { tact ->
-                    with(AppTable.Conversation) {
-                        tact.exec("create table $table($message text, $date integer)")
+                version(1) {
+
+                    AppTable.Conversation.on(it) {
+                        "create table $table($message text, $date integer)"
                     }
+
                 }
             },
             engine = DefaultSQLiteEngine,
