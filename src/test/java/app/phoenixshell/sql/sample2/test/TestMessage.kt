@@ -18,6 +18,30 @@ class TestMessage {
         val db = createDatabase(
             targetVersion = 1,
             name = "test_message.db",
+            mode = DatabaseMode.External,
+            connection = DefaultSQLConnection,
+            migrations = buildMigrations {
+                version(1) { tact ->
+                    with(AppTable.Conversation) {
+                        tact.exec("create table $table($message text, $date integer)")
+                    }
+                }
+            },
+            engine = DefaultSQLiteEngine
+        )
+
+        val action = ConversationQuery.insert(ConversationModel("message", 123))
+
+        db.useTransaction { tact ->
+            tact.insert(action)
+        }
+    }
+
+    @Test
+    fun testMessage2() {
+        val db = createDatabase(
+            targetVersion = 1,
+            name = "test_message.db",
             mode = DatabaseMode.Memory,
             connection = DefaultSQLConnection,
             migrations = buildMigrations {
@@ -31,10 +55,6 @@ class TestMessage {
         )
 
         val insert = ConversationQuery.insert(ConversationModel("message", 123))
-        db.useTransaction { tact ->
 
-
-            AppTable.Conversation.insert(tact, insert)
-        }
     }
 }

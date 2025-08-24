@@ -12,7 +12,7 @@ object ExampleSchema: SQLSchema() {
 }
 
 object ExampleQuery {
-    fun insertMovie(QTitle: String) = buildQuery<ExampleSchema.Movie> { _, schema, statement, binding ->
+    fun insertMovie(QTitle: String) = buildTemplate<ExampleSchema.Movie> { _, schema, statement, binding ->
         with(schema) {
             statement("""
                 insert into $table value of $title = ${binding(title)} where createdAt = ${binding(
@@ -25,7 +25,7 @@ object ExampleQuery {
         }
     }
 
-    fun searchMovie(QTitle: String) = buildQuery<ExampleSchema.Movie> { _, schema, statement, bind ->
+    fun searchMovie(QTitle: String) = buildTemplate<ExampleSchema.Movie> { _, schema, statement, bind ->
         with(schema) {
             statement("""
             select from $table * where $title = ${bind(title)}

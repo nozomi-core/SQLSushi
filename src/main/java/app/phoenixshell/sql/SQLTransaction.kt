@@ -78,6 +78,10 @@ class SQLTransaction internal constructor(
         }
     }
 
+    fun <Schema> insert(query: SQLQuery<Schema>) {
+        return insert(query.table, query.template)
+    }
+
     fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
         runWithTransaction {
             prepareStatement(context, query, QueryOptions()).executeUpdate()

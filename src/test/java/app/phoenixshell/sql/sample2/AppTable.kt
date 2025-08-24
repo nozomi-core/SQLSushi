@@ -4,8 +4,8 @@ import app.phoenixshell.sql.SQLSchema
 import app.phoenixshell.sql.SQLTable
 import app.phoenixshell.sql.buildMapper
 import app.phoenixshell.sql.buildQuery
+import app.phoenixshell.sql.buildTemplate
 import app.phoenixshell.sql.maps
-import app.phoenixshell.sql.sample.app.Tables
 
 data class ConversationModel(
     val message: String,
@@ -30,7 +30,7 @@ val ConversationMap = buildMapper(AppTable.Conversation) {
 
 object ConversationQuery {
 
-    fun insert(model: ConversationModel) = buildQuery<AppTable.Conversation> { opt, table, query, bind ->
+    fun insert(model: ConversationModel) = buildQuery(AppTable.Conversation) { opt, table, query, bind ->
         with(table) {
             query("""
                 insert into $table($message, $date) values (${bind(message)}, ${bind(date)})
@@ -42,7 +42,13 @@ object ConversationQuery {
         }
     }
 
-    fun all() = buildQuery<AppTable.Conversation> { options, schema, statement, bind ->
+    fun select() = buildQuery(AppTable.Conversation) { opt, table, query, bind ->
+        query("""
+            
+        """.trimIndent()).args()
+    }
+
+    fun all() = buildTemplate<AppTable.Conversation> { options, schema, statement, bind ->
         with(schema) {
             statement("""
                     select * from $table

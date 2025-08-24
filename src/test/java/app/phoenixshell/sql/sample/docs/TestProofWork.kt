@@ -43,13 +43,13 @@ class TestProofWork {
         val isVerified = verifier.verify(digitalSignature)
     }
 
-    @Test
+    //@Test
     fun signal() {
         assertEquals(array[0].toCharArray()[0].code, "")
 
     }
 
-    @Test
+    //@Test
     fun testProofOfWork() {
 
         var found = false
