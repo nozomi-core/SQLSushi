@@ -64,17 +64,16 @@ class TestMessage {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = buildMigrations {
-                version(1) { tact ->
-                    with(AppTable.Conversation) {
-                        tact.exec("create table $table($message text, $date integer)")
+                version(1) {
+                    AppTable.Conversation.on(it) {
+                        "create table $table($message text, $date integer)"
                     }
+
                 }
             },
             engine = DefaultSQLiteEngine,
             resultDecoder = conversationDecoder
         )
-
-
 
         db.useTransaction { tact ->
             tact.insert(ConversationQuery.insert(ConversationModel("message123", 123)))
@@ -96,9 +95,9 @@ class TestMessage {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = buildMigrations {
-                version(1) { tact ->
-                    with(AppTable.Conversation) {
-                        tact.exec("create table $table($message text, $date integer)")
+                version(1) {
+                    AppTable.Conversation.on(it) {
+                        "create table $table($message text, $date integer)"
                     }
                 }
             },
