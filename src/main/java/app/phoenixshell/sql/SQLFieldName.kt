@@ -1,7 +1,7 @@
 package app.phoenixshell.sql
 
 class SQLFieldName<T>(
-    val table: SQLTableName,
+    val table: SQLTable,
     val field: String,
     val javClass: Class<T>
 ) {

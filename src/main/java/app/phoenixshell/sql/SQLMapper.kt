@@ -48,3 +48,9 @@ class SchemaMapper<Schema, Data>(
         return list
     }
 }
+
+class InvokeMapper<T: SQLTable, M>(val table: T, callback: SchemaMapper<T, M>.() -> M)
+
+fun <T: SQLTable, M> buildMapper(table: T, callback: SchemaMapper<T, M>.() -> M): InvokeMapper<T, M> {
+    return InvokeMapper(table, callback)
+}

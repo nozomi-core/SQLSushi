@@ -1,25 +1,14 @@
 package app.phoenixshell.sql
 
 import java.sql.Connection
-import java.sql.ResultSet
-
-class ResultMapping<Schema>(
-    private val schema: Schema,
-    private val results: ResultSet
-) {
-    fun <R> map(mapper: SQLMapper<Schema, R>): List<R> {
-        return results.map(schema, mapper) { e, result ->
-            e.printStackTrace()
-        }
-    }
-}
 
 class SQLTransaction internal constructor(
-    private val connection: Connection
+    private val connection: Connection,
+    private val resultDecoder: ResultDecoder,
 ){
     private var isOpen = true
 
-    fun prepare(sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
+    internal fun prepare(sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
         return runWithTransaction {
             SQLPreparedStatement.create(connection, sql, fields)
         }
@@ -31,16 +20,24 @@ class SQLTransaction internal constructor(
         }
     }
 
-    fun <Schema> query(schema: Schema, query: SQLTemplate<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
+    internal fun <Schema> query(schema: Schema, query: SQLTemplate<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
         return runWithTransaction {
             val queryProjection = selection(schema)
 
             val results = prepareStatement(schema, query, options.copy(selection = Selection(queryProjection))).executeQuery()
-            ResultMapping(schema, results)
+            ResultMapping(schema, results, resultDecoder)
         }
     }
 
-    fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
+    fun <Schema> query(query: SQLQuery<Schema>, options: QueryOptions = QueryOptions(), selection: (Schema) -> Array<SQLFieldName<*>> = { arrayOf()}): ResultMapping<Schema> {
+        return query(query.table, query.template, options, selection)
+    }
+
+    fun <Schema> insert(query: SQLQuery<Schema>) {
+        return insert(query.table, query.template)
+    }
+
+    internal fun <Schema> insert(context: Schema, query: SQLTemplate<Schema>) {
         runWithTransaction {
             prepareStatement(context, query, QueryOptions()).executeUpdate()
         }
@@ -71,4 +68,9 @@ class SQLTransaction internal constructor(
     internal fun close() {
         isOpen = false
     }
+}
+
+inline fun <T: SQLTable> T.on(tact: SQLTransaction, callback: T.() -> String) {
+    val sql = callback(this)
+    tact.exec(sql)
 }

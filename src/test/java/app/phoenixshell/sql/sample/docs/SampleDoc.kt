@@ -4,12 +4,12 @@ import app.phoenixshell.sql.*
 import org.junit.jupiter.api.Test
 
 object Schema: SQLSchema() {
-    object User: SQLTableName(this, "user") {
+    object User: SQLTable(this, "user") {
         val firstName = string("first_name")
         val lastName = string("last_name")
         val createdAt = long("created_at")
     }
-    object Posts: SQLTableName(this, "posts") {
+    object Posts: SQLTable(this, "posts") {
         val title = string("title")
         val createdAt = long("created_at")
     }
@@ -45,8 +45,8 @@ val UserMapping: SQLMapper<Schema.User, UserModel> = {
     }
 }
 
-object UserQuery: SQLQueryList() {
-    fun insert(vFirstName: String, vLastName: String) = buildQuery<Schema.User> { options, schema, statement, binding ->
+object UserQuery {
+    fun insert(vFirstName: String, vLastName: String) = buildQuery(Schema.User) { options, schema, statement, binding ->
 
         val vCreatedAt = System.currentTimeMillis()
 
@@ -70,7 +70,7 @@ object UserQuery: SQLQueryList() {
         }
     }
 
-    fun findFirstName(vFirstName: String) = buildQuery<Schema.User> { _, schema, statement, binding ->
+    fun findFirstName(vFirstName: String) = buildQuery(Schema.User) { _, schema, statement, binding ->
         with(schema) {
             statement("""
                 select * from $table where $firstName = ${binding(firstName)}
@@ -90,15 +90,16 @@ class SampleDoc {
             targetVersion = 1,
             name = "sampledoc.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = MyMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         val insertUser = UserQuery.insert("MyFirstname", "MyLastname")
 
-        db.useTransaction {
-            it.insert(Schema.User, insertUser)
+        db.useTransaction { tact ->
+            tact.insert(insertUser)
         }
     }
 
@@ -108,17 +109,18 @@ class SampleDoc {
             targetVersion = 1,
             name = "sampledoc.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = MyMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         val findQuery = UserQuery.findFirstName("MyFirstname")
 
         val result =  db.useTransaction {
-           it.query(Schema.User, findQuery, QueryOptions()).map(UserMapping)
-        }.getOk()
+           it.query(findQuery).map(UserMapping)
+        }
 
-        assert(result.isNotEmpty())
+        assert(result.isEmpty())
     }
 }

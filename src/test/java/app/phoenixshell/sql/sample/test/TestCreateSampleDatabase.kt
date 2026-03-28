@@ -3,11 +3,14 @@ package app.phoenixshell.sql.sample.test
 import app.phoenixshell.sql.*
 import app.phoenixshell.sql.sample.app.TestMigrations
 import app.phoenixshell.sql.sample.app.TestQuery
-import app.phoenixshell.sql.sample.app.TestSchema
+import app.phoenixshell.sql.sample.app.TestModel
 import app.phoenixshell.sql.sample.app.UserMapping
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import java.sql.ResultSet
 import java.util.UUID
+
+data class SimpleData(val text: String)
 
 class TestCreateSampleDatabase {
 
@@ -18,12 +21,41 @@ class TestCreateSampleDatabase {
             targetVersion = 1,
             name = "sample.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         assertEquals("version=1", db.getDatabaseVersion().toString())
+    }
+
+    @Test
+    fun testCreateAndBuildMigrations() {
+        val db = createDatabase(
+            targetVersion = 2,
+            name = "sample.db",
+            mode = DatabaseMode.Memory,
+            connection = DefaultSQLiteConnection,
+            migrations = buildMigrations {
+                version(1) { tact ->
+                    tact.exec("""
+                        create table example1(name text);
+                    """)
+                }
+                version(2) { tact ->
+                    tact.exec("""
+                        ALTER TABLE example1 ADD COLUMN age INTEGER;
+                    """)
+                }
+            },
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
+        )
+
+        db.useTransaction { tact ->
+            tact.exec("insert into example1(name, age) values ('Hello there', 81);")
+        }
     }
 
     @Test
@@ -33,23 +65,61 @@ class TestCreateSampleDatabase {
             targetVersion = 1,
             name = "sample.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         db.useTransaction { tact ->
-            tact.insert(TestSchema.User, TestQuery.User.insert("Smith", 99))
-            tact.insert(TestSchema.User, TestQuery.User.insert("Example", 99))
+            tact.insert(TestQuery.User.insert("Smith", 99))
+            tact.insert( TestQuery.User.insert("Example", 99))
         }
 
         val result = db.useTransaction { tact ->
-            tact.query(TestSchema.User, TestQuery.User.getByAge(99), QueryOptions(limit = 1)).map(UserMapping)
-        }.getOrThrow()
+            tact.query(TestQuery.User.getByAge(99), QueryOptions(limit = 1)).map(UserMapping)
+
+        }
 
         assertEquals("Smith", result[0].name)
         assertEquals("version=1", db.getDatabaseVersion().toString())
         assertEquals(1, result.size)
+    }
+
+    @Test
+    fun testInsertDecode() {
+
+        val localDecoder = object : ResultDecoder {
+            override fun <T> decode(kClass: Class<T>, resultSet: ResultSet): T {
+                return TestModel(
+                    name = resultSet.getString("name"),
+                    birthYear = resultSet.getInt("birthYear")
+                ) as T
+            }
+
+        }
+
+        val db = createDatabase(
+            targetVersion = 1,
+            name = "sample.db",
+            mode = DatabaseMode.Memory,
+            connection = DefaultSQLiteConnection,
+            migrations = TestMigrations,
+            engine = DefaultSQLiteEngine,
+            resultDecoder = localDecoder
+        )
+
+        db.useTransaction { tact ->
+            tact.insert(TestQuery.User.insert("Smith2", 99))
+            tact.insert(TestQuery.User.insert("Example", 99))
+        }
+
+        val result = db.useTransaction { tact ->
+           tact.query(TestQuery.User.getByAge(99)).decodeSingle<TestModel>()
+        }
+
+        assertEquals("Smith2", result.name)
+        assertEquals("version=1", db.getDatabaseVersion().toString())
     }
 
     @Test
@@ -59,20 +129,23 @@ class TestCreateSampleDatabase {
             targetVersion = 1,
             name = "insert100.db",
             mode = DatabaseMode.Memory,
-            connection = DefaultSQLConnection,
+            connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
+            engine = DefaultSQLiteEngine,
+            resultDecoder = ResultDecoderNotImplemented
         )
 
         db.useTransaction { tact ->
             repeat(100) {
-                tact.insert(TestSchema.User, TestQuery.User.insert(UUID.randomUUID().toString(), 99))
+
+
+                tact.insert(TestQuery.User.insert(UUID.randomUUID().toString(), 99))
             }
         }
 
         val result = db.useTransaction { tact ->
-            tact.query(TestSchema.User, TestQuery.User.getByAge(99), QueryOptions(limit = 5)).map(UserMapping)
-        }.getOrThrow()
+            tact.query(TestQuery.User.getByAge(99), QueryOptions(limit = 5)).map(UserMapping)
+        }
 
         assertEquals(5, result.size)
     }

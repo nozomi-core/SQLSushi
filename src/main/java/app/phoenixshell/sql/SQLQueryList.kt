@@ -61,10 +61,11 @@ class Selection(private val fields: Array<SQLFieldName<*>>) {
     }
 }
 
-open class SQLQueryList {
-    fun <Schema> buildQuery(callback: QueryBuilderFactory<Schema>): SQLTemplate<Schema> {
-        return SQLTemplate.Syntax(callback)
-    }
+fun <Schema> buildQuery(table: Schema, callback: QueryBuilderFactory<Schema>): SQLQuery<Schema> {
+    return SQLQuery(table, SQLTemplate.Syntax(callback))
 }
 
 infix fun <T> SQLFieldName<T>.maps(value: T): Pair<SQLFieldName<T>, T> = this to value
+
+class SQLQuery<Schema>(val table: Schema, val template: SQLTemplate<Schema>)
+
