@@ -8,6 +8,5 @@ object Tables: SQLSchema() {
         val name = string("name")
         val birthYear = int("birthYear")
         val derived = int("derived")
-
     }
 }

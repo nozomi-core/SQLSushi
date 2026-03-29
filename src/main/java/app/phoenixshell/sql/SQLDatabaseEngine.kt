@@ -1,7 +1,7 @@
 package app.phoenixshell.sql
 
 interface SQLDatabaseEngine {
-    fun onCreate(transaction: SQLTransaction)
-    fun getCurrentDatabaseVersion(database: SQLConnection): SQLDatabaseVersion
-    fun setCurrentDatabaseVersion(transaction: SQLTransaction, version: Int)
+    fun onCreate(database: SQLContext)
+    fun getCurrentDatabaseVersion(database: SQLContext): SQLDatabaseVersion
+    fun setCurrentDatabaseVersion(database: SQLContext, version: Int)
 }

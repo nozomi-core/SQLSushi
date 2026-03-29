@@ -1,6 +1,6 @@
 package app.phoenixshell.sql
 
-data class LocalMigration(val version: Int, val callback: (tact: SQLTransaction) -> Unit)
+data class LocalMigration(val version: Int, val callback: (tact: SQLMigrationContext) -> Unit)
 
 class MigrationBuilder() {
     private val _migrationArray = mutableListOf<LocalMigration>()
@@ -9,7 +9,7 @@ class MigrationBuilder() {
             return _migrationArray.sortedBy { it.version }
         }
 
-    fun version(version: Int, callback: (tact: SQLTransaction) -> Unit) {
+    fun version(version: Int, callback: (tact: SQLMigrationContext) -> Unit) {
         _migrationArray.add(LocalMigration(version, callback))
     }
 }
@@ -23,7 +23,7 @@ fun buildMigrations(callback: MigrationBuilder.() -> Unit): SQLDatabaseMigration
             override val version: Int
                 get() = model.version
 
-            override fun onMigrate(tact: SQLTransaction) {
+            override fun onMigrate(tact: SQLMigrationContext) {
                 model.callback(tact)
             }
         }

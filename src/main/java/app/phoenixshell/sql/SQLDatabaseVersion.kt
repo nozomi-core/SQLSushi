@@ -7,4 +7,5 @@ sealed class SQLDatabaseVersion {
     object EmptyVersion: SQLDatabaseVersion() {
         override fun toString(): String = "version=empty"
     }
+    object VersionError: SQLDatabaseVersion()
 }

@@ -2,14 +2,14 @@ package app.phoenixshell.sql.sample.app
 
 import app.phoenixshell.sql.SQLDatabaseMigration
 import app.phoenixshell.sql.SQLDatabaseMigrationFactory
-import app.phoenixshell.sql.SQLTransaction
+import app.phoenixshell.sql.SQLMigrationContext
 
 object TestMigration001: SQLDatabaseMigration {
     override val version: Int = 1
 
-    override fun onMigrate(tact: SQLTransaction) {
+    override fun onMigrate(context: SQLMigrationContext) {
         Tables.User.run {
-            tact.exec("""
+            context.exec("""
                 create table $table($name text, $birthYear integer, $derived integer);
             """.trimIndent())
         }

@@ -1,8 +1,8 @@
 package app.phoenixshell.sql
 
-import java.sql.Connection
+import java.sql.Statement
 
 interface SQLDatabaseConnection {
-    fun createJdbcUrl(options: SQLDatabaseOptions): String
-    fun onCreateConnection(connection: Connection)
+    fun createJdbcUrl(name: String, mode: DatabaseMode): String
+    fun onCreateConnection(mode: DatabaseMode, stmt: Statement)
 }

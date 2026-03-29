@@ -1,41 +1,18 @@
 package app.phoenixshell.sql.sample.app
 
-import app.phoenixshell.sql.buildQuery
-import app.phoenixshell.sql.maps
+import app.phoenixshell.sql.SQLContext
+import app.phoenixshell.sql.next.query
 
-object TestQuery {
-    object User {
-        fun insert(qName: String, qBirthYear: Int) = buildQuery(Tables.User) { options, schema, statement, bind ->
-            with(schema) {
-                statement("""
-                    insert into $table(
-                        $derived,
-                        $name, 
-                        $birthYear
-                    )
-                    values(
-                        ${bind(derived)},
-                        ${bind(name)},
-                        ${bind(birthYear)}
-                        
-                   );
-                """).args(
+fun testUseQuery(sqlDatabase: SQLContext) {
 
-                    name maps qName,
-                        birthYear maps qBirthYear,
-                    derived maps qBirthYear - 99
-                )
-            }
-        }
+}
 
-        fun getByAge(birthYear: Int) = buildQuery(Tables.User) { options, schema, statement, bind ->
-            with(schema) {
-                statement("""
-                    select ${options.selection} from $table where ${this.birthYear} = ${bind(this.birthYear)} limit ${options.limit}
-                """).args(
-                    this.birthYear maps birthYear
-                )
-            }
+object SampleQuery {
+    fun getUsers(xBirthYear: Int, xName: String) = query<Tables.User> { sql ->
+        sql.prepare {
+            """
+                select * from $table where $birthYear = ${sql(birthYear, xBirthYear)} and $name = ${sql(name, xName)}
+            """
         }
     }
 }

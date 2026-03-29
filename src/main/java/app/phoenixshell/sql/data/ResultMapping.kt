@@ -1,5 +1,7 @@
-package app.phoenixshell.sql
+package app.phoenixshell.sql.data
 
+import app.phoenixshell.sql.SQLMapper
+import app.phoenixshell.sql.map
 import java.sql.ResultSet
 
 class ResultMapping<Schema>(

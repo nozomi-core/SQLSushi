@@ -1,4 +1,4 @@
-package app.phoenixshell.sql
+package app.phoenixshell.sql.data
 
 import java.sql.ResultSet
 
