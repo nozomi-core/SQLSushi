@@ -3,19 +3,38 @@ package app.phoenixshell.sql.sample.test
 import app.phoenixshell.sql.*
 import app.phoenixshell.sql.data.ResultDecoder
 import app.phoenixshell.sql.data.ResultDecoderNotImplemented
+import app.phoenixshell.sql.query.insert
+import app.phoenixshell.sql.query.select
+import app.phoenixshell.sql.query.update
+import app.phoenixshell.sql.sample.app.Tables
 import app.phoenixshell.sql.sample.app.TestMigrations
 import app.phoenixshell.sql.sample.app.TestModel
+import app.phoenixshell.sql.sample.app.UserWhere
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.sql.ResultSet
 
-data class SimpleData(val text: String)
+
+@Serializable
+data class UserModel(
+    val name: String,
+    val birthYear: Int?,
+    val derived: Int?
+)
+
+@Serializable
+data class NameUpdate(
+    val name: String,
+    val derived: Int
+)
+
 
 class TestCreateSampleDatabase {
 
@@ -31,6 +50,28 @@ class TestCreateSampleDatabase {
             engine = DefaultSQLiteEngine,
             decoder = ResultDecoderNotImplemented
         )
+
+        database.useWriteTransaction { context ->
+            //context.exec(generateRandomInsert(Tables.User))
+
+            val newName = NameUpdate("Popcorn", -1)
+
+            val getUser = UserWhere.getBirthYear(78)
+                .using(Tables.User)
+
+            context.update(getUser, newName)
+        }
+
+        val result = database.useWriteTransaction { context ->
+            val allUsers = UserWhere.getAll()
+                .using(Tables.User)
+
+            context.select<UserModel>(allUsers)
+        }
+
+        assertEquals(result.size, 4)
+
+
 
         assertEquals("version=1", database.getDatabaseVersion().toString())
     }

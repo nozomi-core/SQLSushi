@@ -1,6 +1,7 @@
 package app.phoenixshell.sql.next
 
 import app.phoenixshell.sql.SQLFieldName
+import java.sql.PreparedStatement
 
 fun <T> insert(callback: (StatementBuilder<T>) -> StatementBuilder<T>): StatementBuilder<T> {
     val statementBuilder = StatementBuilder<T>()
@@ -8,7 +9,7 @@ fun <T> insert(callback: (StatementBuilder<T>) -> StatementBuilder<T>): Statemen
     return statementBuilder
 }
 
-fun <T> query(callback: (StatementBuilder<T>) -> StatementBuilder<T>): StatementBuilder<T> {
+fun <T> where(callback: (StatementBuilder<T>) -> StatementBuilder<T>): StatementBuilder<T> {
     val statementBuilder = StatementBuilder<T>()
     callback(statementBuilder)
     return statementBuilder
@@ -29,9 +30,9 @@ class StatementBuilder<T> {
         return "?"
     }
 
-    fun using(table: T): PreparedQuery<T> {
+    fun using(table: T): WhereQuery<T> {
         val statement = callback!!.invoke(table)
-        return PreparedQuery(table, statement, bindings)
+        return WhereQuery(table, statement, bindings)
     }
 }
 
@@ -40,12 +41,18 @@ data class SQLBinding<T>(
     val value: T
 )
 
-class PreparedQuery<T>(
+class WhereQuery<T>(
     val table: T,
     val statement: String,
     val bindings: List<SQLBinding<*>>
 ) {
     operator fun get(index: Int): SQLBinding<*> {
         return bindings[index]
+    }
+
+    fun bind(startIndex: Int, stmt: PreparedStatement) {
+        bindings.forEachIndexed { index, binding ->
+            stmt.setObject(index + startIndex, binding.value)
+        }
     }
 }
