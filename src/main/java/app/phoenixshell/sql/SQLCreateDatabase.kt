@@ -1,7 +1,5 @@
 package app.phoenixshell.sql
 
-import app.phoenixshell.sql.data.ResultDecoder
-import app.phoenixshell.sql.data.ResultDecoderNotImplemented
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import java.sql.DriverManager
@@ -17,8 +15,7 @@ fun createDatabase(
     mode: DatabaseMode,
     connection: SQLDatabaseConnection,
     migrations: SQLDatabaseMigrationFactory,
-    engine: SQLDatabaseEngine,
-    decoder: ResultDecoder = ResultDecoderNotImplemented
+    engine: SQLDatabaseEngine
 ): InternalSQLDatabase {
 
     val databaseUrl = connection.createJdbcUrl(name, mode)

@@ -1,7 +1,7 @@
 package app.phoenixshell.sql
 
 import app.phoenixshell.sql.sample.app.Tables
-import app.phoenixshell.sql.sample.app.UserWhere
+import app.phoenixshell.sql.sample.app.User
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -9,7 +9,7 @@ class SQL2Test {
 
     @Test
     fun testQuery2() {
-        val query = UserWhere
+        val query = User
             .getBirthYear(9)
             .using(Tables.User)
 

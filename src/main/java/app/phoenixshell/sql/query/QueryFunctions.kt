@@ -2,7 +2,7 @@ package app.phoenixshell.sql.query
 
 import app.phoenixshell.sql.SQLContext
 import app.phoenixshell.sql.SQLTable
-import app.phoenixshell.sql.next.WhereQuery
+import app.phoenixshell.sql.WhereQuery
 import kotlinx.serialization.*
 import java.sql.PreparedStatement
 

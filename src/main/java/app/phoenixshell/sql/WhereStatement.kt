@@ -1,26 +1,19 @@
-package app.phoenixshell.sql.next
+package app.phoenixshell.sql
 
-import app.phoenixshell.sql.SQLFieldName
 import java.sql.PreparedStatement
 
-fun <T> insert(callback: (StatementBuilder<T>) -> StatementBuilder<T>): StatementBuilder<T> {
-    val statementBuilder = StatementBuilder<T>()
+fun <T> query(callback: (WhereBuilder<T>) -> WhereBuilder<T>): WhereBuilder<T> {
+    val statementBuilder = WhereBuilder<T>()
     callback(statementBuilder)
     return statementBuilder
 }
 
-fun <T> where(callback: (StatementBuilder<T>) -> StatementBuilder<T>): StatementBuilder<T> {
-    val statementBuilder = StatementBuilder<T>()
-    callback(statementBuilder)
-    return statementBuilder
-}
-
-class StatementBuilder<T> {
+class WhereBuilder<T> {
     private val bindings = mutableListOf<SQLBinding<*>>()
 
     private var callback: (T.() -> String)? = null
 
-    fun prepare(callback: T.() -> String): StatementBuilder<T> {
+    fun where(callback: T.() -> String): WhereBuilder<T> {
         this.callback = callback
         return this
     }

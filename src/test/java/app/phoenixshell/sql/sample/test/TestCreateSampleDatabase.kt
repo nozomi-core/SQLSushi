@@ -1,15 +1,13 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.*
-import app.phoenixshell.sql.data.ResultDecoder
-import app.phoenixshell.sql.data.ResultDecoderNotImplemented
 import app.phoenixshell.sql.query.insert
 import app.phoenixshell.sql.query.select
 import app.phoenixshell.sql.query.update
 import app.phoenixshell.sql.sample.app.Tables
 import app.phoenixshell.sql.sample.app.TestMigrations
 import app.phoenixshell.sql.sample.app.TestModel
-import app.phoenixshell.sql.sample.app.UserWhere
+import app.phoenixshell.sql.sample.app.User
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -19,8 +17,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
 import java.sql.ResultSet
-
 
 @Serializable
 data class UserModel(
@@ -35,7 +33,6 @@ data class NameUpdate(
     val derived: Int
 )
 
-
 class TestCreateSampleDatabase {
 
     @Test
@@ -44,35 +41,29 @@ class TestCreateSampleDatabase {
         val database = createDatabase(
             targetVersion = 1,
             name = "sample.db",
-            mode = DatabaseMode.External,
+            mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine,
-            decoder = ResultDecoderNotImplemented
+            engine = DefaultSQLiteEngine
         )
 
         database.useWriteTransaction { context ->
-            //context.exec(generateRandomInsert(Tables.User))
-
             val newName = NameUpdate("Popcorn", -1)
-
-            val getUser = UserWhere.getBirthYear(78)
+            val getUser = User.getBirthYear(78)
                 .using(Tables.User)
 
             context.update(getUser, newName)
+            context.insert(Tables.User, UserModel("example", 90, 45))
         }
 
         val result = database.useWriteTransaction { context ->
-            val allUsers = UserWhere.getAll()
+            val allUsers = User.getAll()
                 .using(Tables.User)
 
             context.select<UserModel>(allUsers)
         }
 
-        assertEquals(result.size, 4)
-
-
-
+        assertEquals(result.size, 1)
         assertEquals("version=1", database.getDatabaseVersion().toString())
     }
 
@@ -95,8 +86,7 @@ class TestCreateSampleDatabase {
                     """)
                 }
             },
-            engine = DefaultSQLiteEngine,
-            decoder = ResultDecoderNotImplemented
+            engine = DefaultSQLiteEngine
         )
 
         db.useWriteTransaction { tact ->
@@ -106,15 +96,13 @@ class TestCreateSampleDatabase {
 
     @Test
     fun testInsert() {
-
         val db = createDatabase(
             targetVersion = 1,
             name = "sample.db",
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine,
-            decoder = ResultDecoderNotImplemented
+            engine = DefaultSQLiteEngine
         )
 
         db.useWriteTransaction { tact ->
@@ -133,42 +121,6 @@ class TestCreateSampleDatabase {
     }
 
     @Test
-    fun testInsertDecode() {
-
-        val localDecoder = object : ResultDecoder {
-            override fun <T> decode(kClass: Class<T>, resultSet: ResultSet): T {
-                return TestModel(
-                    name = resultSet.getString("name"),
-                    birthYear = resultSet.getInt("birthYear")
-                ) as T
-            }
-
-        }
-
-        val db = createDatabase(
-            targetVersion = 1,
-            name = "sample.db",
-            mode = DatabaseMode.Memory,
-            connection = DefaultSQLiteConnection,
-            migrations = TestMigrations,
-            engine = DefaultSQLiteEngine,
-            decoder = localDecoder
-        )
-
-        /*db.useTransaction { tact ->
-            tact.insert(TestQuery.User.insert("Smith2", 99))
-            tact.insert(TestQuery.User.insert("Example", 99))
-        }
-
-        val result = db.useTransaction { tact ->
-           tact.query(TestQuery.User.getByAge(99)).decodeSingle<TestModel>()
-        }
-
-        assertEquals("Smith2", result.name)
-        assertEquals("version=1", db.getDatabaseVersion().toString())*/
-    }
-
-    @Test
     fun testInsert100() {
 
         val db = createDatabase(
@@ -177,8 +129,7 @@ class TestCreateSampleDatabase {
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine,
-            decoder = ResultDecoderNotImplemented
+            engine = DefaultSQLiteEngine
         )
 
         /*db.useTransaction { tact ->
@@ -202,11 +153,10 @@ class TestCreateSampleDatabase {
         val database = createDatabase(
             targetVersion = 1,
             name = "testWriteTimeout.db",
-            mode = DatabaseMode.External,
+            mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
             migrations = TestMigrations,
-            engine = DefaultSQLiteEngine,
-            decoder = ResultDecoderNotImplemented
+            engine = DefaultSQLiteEngine
         )
 
         val po = CompletableDeferred<String>()
@@ -225,10 +175,10 @@ class TestCreateSampleDatabase {
             delay(200)
         }
 
-        GlobalScope.launch {
-            database.useWriteTransaction { context ->
+        assertThrows<Exception> {
+            runBlocking { database.useWriteTransaction { context ->
                 context.exec("INSERT INTO users (name, birthYear, derived) VALUES ('Sam', 2000, 21);")
-            }
+            } }
         }
 
         po.await()
