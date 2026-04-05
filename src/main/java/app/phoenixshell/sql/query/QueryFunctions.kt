@@ -78,13 +78,10 @@ inline fun <reified T> SQLContext.select(
 }
 
 fun SQLContext.delete(
-    table: String,
-    whereColumn: String,
-    whereValue: Any?
+    where: WhereQuery<*>
 ) {
-    prepare("DELETE FROM $table WHERE $whereColumn = ?") { stmt ->
-        stmt.bindValue(1, whereValue)
-        stmt.executeUpdate()
+    prepare("DELETE FROM ${where.table} ${where.statement}") { stmt ->
+        where.bind(0, stmt)
     }
 }
 

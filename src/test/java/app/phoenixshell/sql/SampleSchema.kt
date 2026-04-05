@@ -54,9 +54,7 @@ object User {
     }
 
     fun getAll() = query<Tables.User> { sql ->
-        sql.where {
-            "where 1=1"
-        }
+        sql.whereAll()
     }
 }
 

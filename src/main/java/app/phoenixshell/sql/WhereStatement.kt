@@ -18,6 +18,11 @@ class WhereBuilder<T> {
         return this
     }
 
+    fun whereAll(): WhereBuilder<T> {
+        callback = { "where 1=1" }
+        return this
+    }
+
     operator fun <Q> invoke(field: SQLFieldName<Q>, value: Q): String {
         bindings.add(SQLBinding(field, value))
         return "?"
