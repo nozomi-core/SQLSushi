@@ -10,6 +10,10 @@ inline fun <reified T> SQLContext.insert(
     table: SQLTable,
     value: T
 ) {
+    if(value is Iterable<*>) {
+        throw Exception("Value must not be an iterable")
+    }
+
     val descriptor = serializer<T>().descriptor
     val columns = (0 until descriptor.elementsCount)
         .joinToString(", ") { descriptor.getElementName(it) }
@@ -20,6 +24,12 @@ inline fun <reified T> SQLContext.insert(
         val encoder = PreparedStatementEncoder(stmt)
         serializer<T>().serialize(encoder, value)
         stmt.executeUpdate()
+    }
+}
+
+inline fun <reified T> SQLContext.insertAll(table: SQLTable, values: Iterable<T>) {
+    values.forEach {
+        insert(table, it)
     }
 }
 
@@ -77,6 +87,8 @@ fun SQLContext.delete(
         stmt.executeUpdate()
     }
 }
+
+enum class SortOrder { ASC, DESC }
 
 fun PreparedStatement.bindValue(index: Int, value: Any?) {
     when (value) {

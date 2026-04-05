@@ -16,7 +16,7 @@ fun createDatabase(
     connection: SQLDatabaseConnection,
     migrations: SQLDatabaseMigrationFactory,
     engine: SQLDatabaseEngine
-): InternalSQLDatabase {
+): SQLDatabase {
 
     val databaseUrl = connection.createJdbcUrl(name, mode)
     setupConnection(databaseUrl,  mode, connection)
@@ -29,7 +29,7 @@ fun createDatabase(
     }
 
     val writeDataSource = HikariDataSource(writeConfig)
-    return InternalSQLDatabase(SQLConnection(writeDataSource), engine).apply {
+    return SQLDatabase(SQLConnection(writeDataSource), engine).apply {
 
         setupEngine(this, engine)
         setupMigrations(this, targetVersion, migrations)
@@ -49,7 +49,7 @@ private fun setupConnection(
 }
 
 private fun setupEngine(
-    db: InternalSQLDatabase,
+    db: SQLDatabase,
     engine: SQLDatabaseEngine
 ) {
     db.useWriteTransaction { context ->
@@ -61,7 +61,7 @@ private fun setupEngine(
 }
 
 private fun setupMigrations(
-    db: InternalSQLDatabase,
+    db: SQLDatabase,
     targetVersion: Int,
     migrations: SQLDatabaseMigrationFactory
 ) {
@@ -83,7 +83,7 @@ private fun setupMigrations(
 }
 
 private fun runTargetMigrations(
-    db: InternalSQLDatabase,
+    db: SQLDatabase,
     factory: SQLDatabaseMigrationFactory,
     currentVersion: Int,
     targetVersion: Int

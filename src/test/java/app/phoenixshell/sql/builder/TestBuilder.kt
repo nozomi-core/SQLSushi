@@ -9,7 +9,7 @@ class TestBuilder {
 
     @Test
     fun testFields() {
-        val userTable = SQLTable(SQLSchema(),"user")
+        val userTable = SQLTable("user")
         val field = userTable.string("age")
         val str = "$field"
         assertEquals("age", str)
@@ -17,7 +17,7 @@ class TestBuilder {
 
     @Test
     fun replace() {
-        val userTable = SQLTable(SQLSchema(), "user")
+        val userTable = SQLTable("user")
         val field = userTable.int("age")
         val stmt = "age = ?"
     }

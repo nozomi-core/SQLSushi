@@ -1,21 +1,37 @@
 package app.phoenixshell.sql
 
-import app.phoenixshell.sql.sample.app.Tables
-import app.phoenixshell.sql.sample.app.User
+import createCursor
+import encodeCursor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import paginate
 
 class SQL2Test {
 
     @Test
     fun testQuery2() {
         val query = User
-            .getBirthYear(9)
+            .getCreatedAt(9)
             .using(Tables.User)
 
-        assertEquals(query.statement.trim(), "select * from users where birthYear = ? and name = ?")
+        assertEquals(query.statement.trim(), "where birthYear = ?")
 
         assertEquals(9, query[0].value)
-        assertEquals("name", query[1].value)
+    }
+
+    @Test
+    fun testQueryPage() {
+        val cursor = createCursor(lastId = "0932", lastOrderBy = "jaems")
+
+        val query = User.getCreatedAt(9)
+            .using(Tables.User)
+            .paginate(cursor?.let { encodeCursor(it) }, 30, Tables.User.name, Tables.User.id)
+
+        assertEquals("where birthYear = ? AND (name, id) > (?, ?) ORDER BY name ASC, id ASC LIMIT ?",query.statement.trim())
+    }
+
+    @Test
+    fun testCursor() {
+
     }
 }

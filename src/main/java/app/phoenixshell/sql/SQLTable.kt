@@ -3,7 +3,6 @@ package app.phoenixshell.sql
 open class SQLSchema
 
 open class SQLTable(
-    val schema: SQLSchema,
     val table: String
 ) {
     internal val columns = mutableListOf<SQLFieldName<*>>()
@@ -18,7 +17,7 @@ open class SQLTable(
     fun boolean(name: String): SQLFieldName<Boolean> = field(name)
 
     private inline fun <reified T> field(name: String): SQLFieldName<T> {
-        return SQLFieldName(this, name, T::class.java).apply {
+        return SQLFieldName(name, T::class.java).apply {
             columns.add(this)
         }
     }

@@ -4,10 +4,6 @@ import app.phoenixshell.sql.*
 import app.phoenixshell.sql.query.insert
 import app.phoenixshell.sql.query.select
 import app.phoenixshell.sql.query.update
-import app.phoenixshell.sql.sample.app.Tables
-import app.phoenixshell.sql.sample.app.TestMigrations
-import app.phoenixshell.sql.sample.app.TestModel
-import app.phoenixshell.sql.sample.app.User
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -18,42 +14,26 @@ import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
-import java.sql.ResultSet
-
-@Serializable
-data class UserModel(
-    val name: String,
-    val birthYear: Int?,
-    val derived: Int?
-)
 
 @Serializable
 data class NameUpdate(
     val name: String,
-    val derived: Int
+    val createdAt: Long
 )
 
 class TestCreateSampleDatabase {
 
     @Test
     fun testCreateDatabase() {
-
-        val database = createDatabase(
-            targetVersion = 1,
-            name = "sample.db",
-            mode = DatabaseMode.Memory,
-            connection = DefaultSQLiteConnection,
-            migrations = TestMigrations,
-            engine = DefaultSQLiteEngine
-        )
+        val database = createSampleDatabase()
 
         database.useWriteTransaction { context ->
             val newName = NameUpdate("Popcorn", -1)
-            val getUser = User.getBirthYear(78)
+            val getUser = User.getCreatedAt(78)
                 .using(Tables.User)
 
             context.update(getUser, newName)
-            context.insert(Tables.User, UserModel("example", 90, 45))
+            context.insert(Tables.User, UserModel("123", "example", System.currentTimeMillis()))
         }
 
         val result = database.useWriteTransaction { context ->
@@ -101,7 +81,7 @@ class TestCreateSampleDatabase {
             name = "sample.db",
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
-            migrations = TestMigrations,
+            migrations = SampleMigration,
             engine = DefaultSQLiteEngine
         )
 
@@ -128,7 +108,7 @@ class TestCreateSampleDatabase {
             name = "insert100.db",
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
-            migrations = TestMigrations,
+            migrations = SampleMigration,
             engine = DefaultSQLiteEngine
         )
 
@@ -155,7 +135,7 @@ class TestCreateSampleDatabase {
             name = "testWriteTimeout.db",
             mode = DatabaseMode.Memory,
             connection = DefaultSQLiteConnection,
-            migrations = TestMigrations,
+            migrations = SampleMigration,
             engine = DefaultSQLiteEngine
         )
 
@@ -164,7 +144,7 @@ class TestCreateSampleDatabase {
         GlobalScope.launch {
             database.useWriteTransaction { context ->
                 runBlocking {
-                    context.exec("INSERT INTO users (name, birthYear, derived) VALUES ('John', 1990, 42);")
+                    context.exec("INSERT INTO users (id, name, createdAt) VALUES ('09324', 'James', 42);")
                     delay(7000)
                     po.complete("")
                 }

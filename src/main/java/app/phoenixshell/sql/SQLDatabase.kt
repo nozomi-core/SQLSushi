@@ -1,6 +1,6 @@
 package app.phoenixshell.sql
 
-class InternalSQLDatabase internal constructor(
+class SQLDatabase internal constructor(
     private val writePool: SQLConnection,
     private val engine: SQLDatabaseEngine?
 ) {
