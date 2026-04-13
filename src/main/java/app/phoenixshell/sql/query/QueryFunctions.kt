@@ -54,13 +54,11 @@ inline fun <reified T> SQLContext.update(
     }
 }
 // Decode a SELECT result into a list of data classes
-inline fun <reified T> SQLReadContext.select(
-    query: WhereQuery<*>,
-): List<T> {
-    val fullStatement = "SELECT * FROM ${query.table} ${query.statement.trim()}"
+inline fun <reified T> WhereQuery<*>.exec(context: SQLReadContext): List<T> {
+    val fullStatement = "SELECT * FROM ${this.table} ${this.statement.trim()}"
 
-    return prepare(fullStatement) { stmt ->
-        query.bind(1, stmt)
+    return context.prepare(fullStatement) { stmt ->
+        bind(1, stmt)
 
         val rs = stmt.executeQuery()
         buildList {

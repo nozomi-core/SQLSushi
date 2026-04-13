@@ -44,7 +44,7 @@ interface CreatedAt {
     val createdAt: SQLFieldName<Long>
 }
 
-object User {
+object UserWhere {
     fun getCreatedAt(xCreatedAt: Long) = query<CreatedAt> { sql ->
         sql.where {
             """

@@ -1,18 +1,18 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.Tables
-import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
+import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.createSampleDatabase
 import app.phoenixshell.sql.query.exec
 import app.phoenixshell.sql.query.insertAll
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class TestInsertDatabase {
+class TestSelectQuery {
 
     @Test
-    fun testInsert() {
+    fun testSelectQuery() {
         val database = createSampleDatabase()
 
         val models = listOf(
@@ -21,13 +21,16 @@ class TestInsertDatabase {
             UserModel("800", "Phone", 98376L)
         )
 
+        database.useWriteTransaction { tact ->
+            tact.insertAll(Tables.User, models)
 
+        }
 
         val users = database.useReader { tact ->
-            Tables.User.select(UserWhere.getAll())
+            UserWhere.getCreatedAt(84374L)
+                .using(Tables.User)
                 .exec<UserModel>(tact)
-        }.map { it.name }
-
-        Assertions.assertEquals(listOf("Sample", "Coffee", "Phone"), users)
+        }
+        assertEquals(listOf(models[0]), users)
     }
 }
