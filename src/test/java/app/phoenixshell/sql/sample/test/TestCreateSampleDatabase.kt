@@ -25,7 +25,7 @@ class TestCreateSampleDatabase {
 
     @Test
     fun testCreateDatabase() {
-        val database = createSampleDatabase()
+        val database = createSampleDatabase("create_database")
 
         database.useWriteTransaction { context ->
             val newName = NameUpdate("Popcorn", -1)
@@ -36,7 +36,7 @@ class TestCreateSampleDatabase {
             context.insert(Tables.User, UserModel("123", "example", System.currentTimeMillis()))
         }
 
-        val result = database.useWriteTransaction { context ->
+        val result = database.useReader { context ->
             val allUsers = User.getAll()
                 .using(Tables.User)
 

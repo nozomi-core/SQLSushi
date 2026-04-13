@@ -4,15 +4,15 @@ import app.phoenixshell.sql.Tables
 import app.phoenixshell.sql.User
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
+import app.phoenixshell.sql.query.delete
 import app.phoenixshell.sql.query.insertAll
 import app.phoenixshell.sql.query.select
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class TestInsertDatabase {
-
+class TestDeleteQuery {
     @Test
-    fun testInsert() {
+    fun testDeleteQuery() {
         val database = createSampleDatabase()
 
         val models = listOf(
@@ -23,7 +23,13 @@ class TestInsertDatabase {
 
         database.useWriteTransaction { tact ->
             tact.insertAll(Tables.User, models)
+        }
 
+        database.useWriteTransaction { tact ->
+            val query = User.getCreatedAt(84374L)
+                .using(Tables.User)
+
+            tact.delete(query)
         }
 
         val users = database.useReader { tact ->
@@ -33,6 +39,6 @@ class TestInsertDatabase {
             tact.select<UserModel>(query)
         }.map { it.name }
 
-        Assertions.assertEquals(listOf("Sample", "Coffee", "Phone"), users)
+        Assertions.assertEquals(listOf("Coffee", "Phone"), users)
     }
 }

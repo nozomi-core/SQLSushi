@@ -1,5 +1,6 @@
 package app.phoenixshell.sql
 
+import app.phoenixshell.sql.query.bindValue
 import java.sql.PreparedStatement
 
 fun <T> query(callback: (WhereBuilder<T>) -> WhereBuilder<T>): WhereBuilder<T> {
@@ -50,7 +51,7 @@ class WhereQuery<T>(
 
     fun bind(startIndex: Int, stmt: PreparedStatement) {
         bindings.forEachIndexed { index, binding ->
-            stmt.setObject(index + startIndex, binding.value)
+            stmt.bindValue(index + startIndex, binding.value)
         }
     }
 }

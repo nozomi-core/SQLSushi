@@ -3,9 +3,9 @@ package app.phoenixshell.sql
 import java.sql.Connection
 import java.sql.PreparedStatement
 
-class InternalSQLContext internal constructor(
+class SQLInternalContext internal constructor(
     private val connection: Connection
-): SQLContext {
+): SQLContext, SQLReadContext {
     override fun exec(sql: String) {
         connection.createStatement().use { statement ->
             statement.execute(sql)
@@ -27,3 +27,5 @@ interface SQLContext: SQLMigrationContext {
 interface SQLMigrationContext {
     fun exec(sql: String)
 }
+
+interface SQLReadContext: SQLContext

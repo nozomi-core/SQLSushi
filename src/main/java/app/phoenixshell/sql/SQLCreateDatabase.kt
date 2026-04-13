@@ -22,15 +22,32 @@ fun createDatabase(
     setupConnection(databaseUrl,  mode, connection)
 
     val writeConfig = HikariConfig().apply {
+        poolName = "WritePool"
         jdbcUrl = databaseUrl
         isAutoCommit = false
         maximumPoolSize = 1
         connectionTimeout = 500
     }
 
-    val writeDataSource = HikariDataSource(writeConfig)
-    return SQLDatabase(SQLConnection(writeDataSource), engine).apply {
+    val readConfig = HikariConfig().apply {
+        poolName = "ReadPool"
+        jdbcUrl = databaseUrl
+        isAutoCommit = true
+        maximumPoolSize = 8
+        connectionTimeout = 500
+    }
 
+    val writeDataSource = HikariDataSource(writeConfig)
+    val readDataSource = HikariDataSource(readConfig)
+
+    return SQLDatabase(SQLConnection(
+        writeDataSource = writeDataSource,
+        readDataSource = readDataSource,
+        modeSelector = connection,
+        dbMode = mode
+    ),
+        engine = engine
+    ).apply {
         setupEngine(this, engine)
         setupMigrations(this, targetVersion, migrations)
     }

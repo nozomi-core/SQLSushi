@@ -4,14 +4,13 @@ import app.phoenixshell.sql.SQLFieldName
 import app.phoenixshell.sql.WhereQuery
 import app.phoenixshell.sql.query.ResultSetDecoder
 import app.phoenixshell.sql.query.SortOrder
+import app.phoenixshell.sql.query.bindValue
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.serializer
-import java.sql.Connection
 import java.util.Base64
 
-// ─── Cursor ───────────────────────────────────────────────────────────────────
 
 @Serializable
 data class CursorFormat(
@@ -33,16 +32,10 @@ fun decodeCursor(cursor64: String): CursorFormat? {
     }
 }
 
-// ─── Page Result ──────────────────────────────────────────────────────────────
-
 data class PageResult<T>(
     val data: List<T>,
     val nextCursor: String?
 )
-
-// ─── Paginated Query ──────────────────────────────────────────────────────────
-
-
 
 class PaginatedQuery(
     val statement: String,
@@ -59,7 +52,7 @@ class PaginatedQuery(
 
         val rows = context.prepare(statement) { stmt ->
             bindings.forEachIndexed { i, binding ->
-                stmt.setObject(i + 1, binding.value)
+                stmt.bindValue(i + 1, binding.value)
             }
 
             stmt.executeQuery().use { rs ->

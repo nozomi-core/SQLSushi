@@ -58,10 +58,10 @@ object User {
     }
 }
 
-fun createSampleDatabase(): SQLDatabase {
+fun createSampleDatabase(tag: String = ""): SQLDatabase {
     return createDatabase(
         targetVersion = 1,
-        name = "db_${UUID.randomUUID()}.db",
+        name = "db_${tag}_${UUID.randomUUID()}.db",
         mode = DatabaseMode.Memory,
         connection = DefaultSQLiteConnection,
         migrations = SampleMigration,

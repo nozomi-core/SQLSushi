@@ -1,6 +1,7 @@
 package app.phoenixshell.sql.query
 
 import app.phoenixshell.sql.SQLContext
+import app.phoenixshell.sql.SQLReadContext
 import app.phoenixshell.sql.SQLTable
 import app.phoenixshell.sql.WhereQuery
 import kotlinx.serialization.*
@@ -33,7 +34,6 @@ inline fun <reified T> SQLContext.insertAll(table: SQLTable, values: Iterable<T>
     }
 }
 
-// Encode a data class into an UPDATE prepared statement
 inline fun <reified T> SQLContext.update(
     query: WhereQuery<*>,
     value: T
@@ -45,27 +45,22 @@ inline fun <reified T> SQLContext.update(
     val fullStatement = "UPDATE ${query.table} SET $setClause ${query.statement.trim()}"
 
     prepare(fullStatement) { stmt ->
-        // bind all fields first
         val encoder = PreparedStatementEncoder(stmt)
         serializer<T>().serialize(encoder, value)
 
-        // then bind the where value after all fields
         val whereIndex = descriptor.elementsCount + 1
-
         query.bind(whereIndex, stmt)
-
-        //stmt.bindValue(whereIndex, whereValue)
         stmt.executeUpdate()
     }
 }
 // Decode a SELECT result into a list of data classes
-inline fun <reified T> SQLContext.select(
+inline fun <reified T> SQLReadContext.select(
     query: WhereQuery<*>,
 ): List<T> {
     val fullStatement = "SELECT * FROM ${query.table} ${query.statement.trim()}"
 
     return prepare(fullStatement) { stmt ->
-        query.bind(0, stmt)
+        query.bind(1, stmt)
 
         val rs = stmt.executeQuery()
         buildList {
@@ -80,8 +75,14 @@ inline fun <reified T> SQLContext.select(
 fun SQLContext.delete(
     where: WhereQuery<*>
 ) {
+    if(where.bindings.isEmpty()) {
+        throw Exception("Cannot call delete query without a where clause")
+    }
+
     prepare("DELETE FROM ${where.table} ${where.statement}") { stmt ->
-        where.bind(0, stmt)
+        where.bind(1, stmt)
+
+        stmt.executeUpdate()
     }
 }
 
@@ -96,6 +97,6 @@ fun PreparedStatement.bindValue(index: Int, value: Any?) {
         is Double    -> setDouble(index, value)
         is Boolean   -> setBoolean(index, value)
         is String    -> setString(index, value)
-        else         -> setString(index, value.toString())
+        else         -> throw IllegalArgumentException("Unsupported type ${value.javaClass}")
     }
 }

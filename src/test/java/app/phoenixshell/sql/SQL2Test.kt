@@ -14,9 +14,9 @@ class SQL2Test {
             .getCreatedAt(9)
             .using(Tables.User)
 
-        assertEquals(query.statement.trim(), "where birthYear = ?")
+        assertEquals( "where createdAt = ?",query.statement.trim())
 
-        assertEquals(9, query[0].value)
+        assertEquals(9L, query[0].value)
     }
 
     @Test
@@ -27,7 +27,7 @@ class SQL2Test {
             .using(Tables.User)
             .paginate(cursor?.let { encodeCursor(it) }, 30, Tables.User.name, Tables.User.id)
 
-        assertEquals("where birthYear = ? AND (name, id) > (?, ?) ORDER BY name ASC, id ASC LIMIT ?",query.statement.trim())
+        assertEquals("select * from users where createdAt = ? AND (name, id) > (?, ?) ORDER BY name ASC, id ASC LIMIT ?",query.statement.trim())
     }
 
     @Test
