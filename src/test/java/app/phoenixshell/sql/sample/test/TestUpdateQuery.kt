@@ -4,7 +4,7 @@ import app.phoenixshell.sql.Tables
 import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
-import app.phoenixshell.sql.query.exec
+import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insertAll
 import app.phoenixshell.sql.query.update
 import org.junit.jupiter.api.Assertions
@@ -23,19 +23,20 @@ class TestUpdateQuery {
         )
 
         database.useWriteTransaction { tact ->
-            tact.insertAll(Tables.User, models)
+            Tables.User.insertAll(tact, models)
         }
 
         database.useWriteTransaction { tact ->
             val query = UserWhere.getCreatedAt(98376L)
-                .using(Tables.User)
 
-            tact.update(query, UserModel("45", "Over", 1000L))
+
+            Tables.User.update(tact, query, UserModel("45", "Over", 1000L))
         }
 
         val userList = database.useReader { tact ->
-            Tables.User.select(UserWhere.getAll())
-                .exec<UserModel>(tact)
+            Tables.User
+                .where(UserWhere.getAll())
+                .asList<UserModel>(tact)
         }
 
         val users = userList.map { it.name }

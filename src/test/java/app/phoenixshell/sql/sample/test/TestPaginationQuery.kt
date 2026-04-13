@@ -1,6 +1,7 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.Tables
+import app.phoenixshell.sql.Tables.User.table
 import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
@@ -24,7 +25,7 @@ class TestPaginationQuery {
        )
 
        database.useWriteTransaction { tact ->
-           tact.insertAll(Tables.User, models)
+           Tables.User.insertAll(tact, models)
        }
 
        val result = database.useWriteTransaction { tact ->
@@ -44,11 +45,10 @@ class TestPaginationQuery {
        Assertions.assertEquals("Last", decodeCursor?.orderVal)
 
        val resultNext = database.useWriteTransaction { tact ->
-           val query = UserWhere.getAll()
+          UserWhere.getAll()
                .using(Tables.User)
                .paginate(result.nextCursor, limit = 2, Tables.User.name, Tables.User.id)
-
-           query.execute<UserModel>(tact)
+               .execute<UserModel>(tact)
        }
 
        val usersNext = resultNext.data.map { it.name }

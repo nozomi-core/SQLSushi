@@ -1,7 +1,7 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.*
-import app.phoenixshell.sql.query.exec
+import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insert
 import app.phoenixshell.sql.query.update
 import kotlinx.coroutines.CompletableDeferred
@@ -30,15 +30,15 @@ class TestCreateSampleDatabase {
         database.useWriteTransaction { context ->
             val newName = NameUpdate("Popcorn", -1)
             val getUser = UserWhere.getCreatedAt(78)
-                .using(Tables.User)
 
-            context.update(getUser, newName)
-            context.insert(Tables.User, UserModel("123", "example", System.currentTimeMillis()))
+
+            Tables.User.update(context, getUser, newName)
+            Tables.User.insert(context, UserModel("123", "example", System.currentTimeMillis()))
         }
 
         val result = database.useReader { context ->
-            Tables.User.select(UserWhere.getAll())
-            .exec<UserModel>(context)
+            Tables.User.where(UserWhere.getAll())
+            .asList<UserModel>(context)
         }
 
         assertEquals(result.size, 1)

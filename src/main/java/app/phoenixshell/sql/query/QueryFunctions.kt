@@ -3,12 +3,13 @@ package app.phoenixshell.sql.query
 import app.phoenixshell.sql.SQLContext
 import app.phoenixshell.sql.SQLReadContext
 import app.phoenixshell.sql.SQLTable
+import app.phoenixshell.sql.WhereBuilder
 import app.phoenixshell.sql.WhereQuery
 import kotlinx.serialization.*
 import java.sql.PreparedStatement
 
-inline fun <reified T> SQLContext.insert(
-    table: SQLTable,
+inline fun <reified S: SQLTable, reified T> S.insert(
+    context: SQLContext,
     value: T
 ) {
     if(value is Iterable<*>) {
@@ -21,30 +22,33 @@ inline fun <reified T> SQLContext.insert(
     val placeholders = (0 until descriptor.elementsCount)
         .joinToString(", ") { "?" }
 
-    prepare("INSERT INTO $table ($columns) VALUES ($placeholders)") { stmt ->
+    context.prepare("INSERT INTO $table ($columns) VALUES ($placeholders)") { stmt ->
         val encoder = PreparedStatementEncoder(stmt)
         serializer<T>().serialize(encoder, value)
         stmt.executeUpdate()
     }
 }
 
-inline fun <reified T> SQLContext.insertAll(table: SQLTable, values: Iterable<T>) {
+inline fun <reified S: SQLTable, reified T> S.insertAll(context: SQLContext, values: Iterable<T>) {
     values.forEach {
-        insert(table, it)
+        insert(context, it)
     }
 }
 
-inline fun <reified T> SQLContext.update(
-    query: WhereQuery<*>,
+inline fun <reified S: SQLTable, reified T> S.update(
+    context: SQLContext,
+    builder: WhereBuilder<S>,
     value: T
 ) {
+    val query = builder.using(this)
+
     val descriptor = serializer<T>().descriptor
     val setClause = (0 until descriptor.elementsCount)
         .joinToString(", ") { "${descriptor.getElementName(it)} = ?" }
 
     val fullStatement = "UPDATE ${query.table} SET $setClause ${query.statement.trim()}"
 
-    prepare(fullStatement) { stmt ->
+    context.prepare(fullStatement) { stmt ->
         val encoder = PreparedStatementEncoder(stmt)
         serializer<T>().serialize(encoder, value)
 
@@ -54,7 +58,7 @@ inline fun <reified T> SQLContext.update(
     }
 }
 // Decode a SELECT result into a list of data classes
-inline fun <reified T> WhereQuery<*>.exec(context: SQLReadContext): List<T> {
+inline fun <reified T> WhereQuery<*>.asList(context: SQLReadContext): List<T> {
     val fullStatement = "SELECT * FROM ${this.table} ${this.statement.trim()}"
 
     return context.prepare(fullStatement) { stmt ->
@@ -70,14 +74,17 @@ inline fun <reified T> WhereQuery<*>.exec(context: SQLReadContext): List<T> {
     }
 }
 
-fun SQLContext.delete(
-    where: WhereQuery<*>
+fun <S: SQLTable> S.delete(
+    context: SQLContext,
+    builder: WhereBuilder<S>
 ) {
+    val where = builder.using(this)
+
     if(where.bindings.isEmpty()) {
         throw Exception("Cannot call delete query without a where clause")
     }
 
-    prepare("DELETE FROM ${where.table} ${where.statement}") { stmt ->
+    context.prepare("DELETE FROM ${where.table} ${where.statement}") { stmt ->
         where.bind(1, stmt)
 
         stmt.executeUpdate()

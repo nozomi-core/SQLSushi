@@ -45,7 +45,7 @@ interface CreatedAt {
 }
 
 object UserWhere {
-    fun getCreatedAt(xCreatedAt: Long) = query<CreatedAt> { sql ->
+    fun getCreatedAt(xCreatedAt: Long) = query<Tables.User> { sql ->
         sql.where {
             """
                 where $createdAt = ${sql(createdAt, xCreatedAt)}

@@ -7,14 +7,14 @@ import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.WhereBuilder
 import app.phoenixshell.sql.WhereQuery
-import app.phoenixshell.sql.query.exec
+import app.phoenixshell.sql.query.asList
 
-inline fun <reified T: SQLTable> T.select(query: WhereBuilder<T>): WhereQuery<T> {
+inline fun <reified S: SQLTable> S.where(query: WhereBuilder<S>): WhereQuery<S> {
     return query.using(this)
 }
 
 fun TestThis (context: SQLReadContext) {
     Tables.User
-        .select(UserWhere.getAll())
-        .exec<UserModel>(context)
+        .where(UserWhere.getAll())
+        .asList<UserModel>(context)
 }

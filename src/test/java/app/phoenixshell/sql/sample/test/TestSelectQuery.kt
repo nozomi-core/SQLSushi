@@ -4,7 +4,7 @@ import app.phoenixshell.sql.Tables
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.createSampleDatabase
-import app.phoenixshell.sql.query.exec
+import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -22,14 +22,13 @@ class TestSelectQuery {
         )
 
         database.useWriteTransaction { tact ->
-            tact.insertAll(Tables.User, models)
-
+            Tables.User.insertAll(tact, models)
         }
 
         val users = database.useReader { tact ->
             UserWhere.getCreatedAt(84374L)
                 .using(Tables.User)
-                .exec<UserModel>(tact)
+                .asList<UserModel>(tact)
         }
         assertEquals(listOf(models[0]), users)
     }

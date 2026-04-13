@@ -5,7 +5,7 @@ import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
 import app.phoenixshell.sql.query.delete
-import app.phoenixshell.sql.query.exec
+import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insertAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -22,26 +22,23 @@ class TestDeleteQuery {
         )
 
         database.useWriteTransaction { tact ->
-            tact.insertAll(Tables.User, models)
+            Tables.User.insertAll(tact, models)
         }
 
         database.useWriteTransaction { tact ->
-            val query = UserWhere.getCreatedAt(84374L)
-                .using(Tables.User)
-
-            tact.delete(query)
+            Tables.User.delete(tact, UserWhere.getCreatedAt(84374L) )
         }
 
         val userNext = database.useReader {
             Tables.User
-                .select(UserWhere.getAll())
-                .exec<UserModel>(it)
+                .where(UserWhere.getAll())
+                .asList<UserModel>(it)
         }
 
         val users = database.useReader { tact ->
             Tables.User
-                .select(UserWhere.getAll())
-                .exec<UserModel>(tact)
+                .where(UserWhere.getAll())
+                .asList<UserModel>(tact)
         }.map { it.name }
 
         Assertions.assertEquals(listOf("Coffee", "Phone"), users)
