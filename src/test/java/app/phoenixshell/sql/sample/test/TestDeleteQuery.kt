@@ -1,9 +1,10 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.Tables
-import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
+import app.phoenixshell.sql.getAll
+import app.phoenixshell.sql.getCreated
 import app.phoenixshell.sql.query.delete
 import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insertAll
@@ -26,18 +27,18 @@ class TestDeleteQuery {
         }
 
         database.useWriteTransaction { tact ->
-            Tables.User.delete(tact, UserWhere.getCreatedAt(84374L) )
+            Tables.User.delete(tact, Tables.User.getCreated(84374L) )
         }
 
         val userNext = database.useReader {
             Tables.User
-                .where(UserWhere.getAll())
+                .where(Tables.User.getAll())
                 .asList<UserModel>(it)
         }
 
         val users = database.useReader { tact ->
             Tables.User
-                .where(UserWhere.getAll())
+                .where(Tables.User.getAll())
                 .asList<UserModel>(tact)
         }.map { it.name }
 

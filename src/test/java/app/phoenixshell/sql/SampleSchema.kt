@@ -44,19 +44,11 @@ interface CreatedAt {
     val createdAt: SQLFieldName<Long>
 }
 
-object UserWhere {
-    fun getCreatedAt(xCreatedAt: Long) = query<Tables.User> { sql ->
-        sql.where {
-            """
-                where $createdAt = ${sql(createdAt, xCreatedAt)}
-            """
-        }
-    }
-
-    fun getAll() = query<Tables.User> { sql ->
-        sql.whereAll()
-    }
+fun Tables.User.getCreated(xCreatedAt: Long) = where<Tables.User> { sql ->
+    """where $createdAt = ${sql(createdAt, xCreatedAt)}"""
 }
+
+fun Tables.User.getAll() = whereAll<Tables.User>()
 
 fun createSampleDatabase(tag: String = ""): SQLDatabase {
     return createDatabase(

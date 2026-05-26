@@ -29,7 +29,7 @@ class TestCreateSampleDatabase {
 
         database.useWriteTransaction { context ->
             val newName = NameUpdate("Popcorn", -1)
-            val getUser = UserWhere.getCreatedAt(78)
+            val getUser = Tables.User.getCreated(78)
 
 
             Tables.User.update(context, getUser, newName)
@@ -37,7 +37,7 @@ class TestCreateSampleDatabase {
         }
 
         val result = database.useReader { context ->
-            Tables.User.where(UserWhere.getAll())
+            Tables.User.where(Tables.User.getAll())
             .asList<UserModel>(context)
         }
 

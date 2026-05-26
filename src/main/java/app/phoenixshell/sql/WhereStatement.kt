@@ -3,10 +3,16 @@ package app.phoenixshell.sql
 import app.phoenixshell.sql.query.bindValue
 import java.sql.PreparedStatement
 
-fun <T> query(callback: (WhereBuilder<T>) -> WhereBuilder<T>): WhereBuilder<T> {
+fun <T> where(callback: (WhereBuilder<T>) -> String): WhereBuilder<T> {
     val statementBuilder = WhereBuilder<T>()
-    callback(statementBuilder)
-    return statementBuilder
+    return statementBuilder.where {
+        callback(statementBuilder)
+    }
+}
+
+fun <T> whereAll(): WhereBuilder<T> {
+    val statementBuilder = WhereBuilder<T>()
+    return statementBuilder.whereAll()
 }
 
 class WhereBuilder<T> {
@@ -14,7 +20,7 @@ class WhereBuilder<T> {
 
     private var callback: (T.() -> String)? = null
 
-    fun where(callback: T.() -> String): WhereBuilder<T> {
+    internal fun where(callback: T.() -> String): WhereBuilder<T> {
         this.callback = callback
         return this
     }

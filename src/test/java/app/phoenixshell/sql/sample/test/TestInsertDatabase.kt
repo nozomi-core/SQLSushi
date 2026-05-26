@@ -1,9 +1,9 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.Tables
-import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
+import app.phoenixshell.sql.getAll
 import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insertAll
 import org.junit.jupiter.api.Assertions
@@ -28,7 +28,7 @@ class TestInsertDatabase {
 
         val users = database.useReader { tact ->
             Tables.User
-                .where(UserWhere.getAll())
+                .where(Tables.User.getAll())
                 .asList<UserModel>(tact)
         }.map { it.name }
 

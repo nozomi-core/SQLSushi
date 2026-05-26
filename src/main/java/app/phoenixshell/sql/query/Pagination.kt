@@ -11,7 +11,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.serializer
 import java.util.Base64
 
-
 @Serializable
 data class CursorFormat(
     val id: String,

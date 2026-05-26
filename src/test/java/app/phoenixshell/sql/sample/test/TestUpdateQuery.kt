@@ -1,9 +1,10 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.Tables
-import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
+import app.phoenixshell.sql.getAll
+import app.phoenixshell.sql.getCreated
 import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insertAll
 import app.phoenixshell.sql.query.update
@@ -27,7 +28,7 @@ class TestUpdateQuery {
         }
 
         database.useWriteTransaction { tact ->
-            val query = UserWhere.getCreatedAt(98376L)
+            val query = Tables.User.getCreated(98376L)
 
 
             Tables.User.update(tact, query, UserModel("45", "Over", 1000L))
@@ -35,7 +36,7 @@ class TestUpdateQuery {
 
         val userList = database.useReader { tact ->
             Tables.User
-                .where(UserWhere.getAll())
+                .where(Tables.User.getAll())
                 .asList<UserModel>(tact)
         }
 

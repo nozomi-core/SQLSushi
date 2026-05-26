@@ -1,10 +1,9 @@
 package app.phoenixshell.sql.sample.test
 
 import app.phoenixshell.sql.Tables
-import app.phoenixshell.sql.Tables.User.table
-import app.phoenixshell.sql.UserWhere
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
+import app.phoenixshell.sql.getAll
 import app.phoenixshell.sql.query.insertAll
 import decodeCursor
 import org.junit.jupiter.api.Assertions
@@ -29,12 +28,10 @@ class TestPaginationQuery {
        }
 
        val result = database.useWriteTransaction { tact ->
-           val query = UserWhere.getAll()
+           Tables.User.getAll()
                .using(Tables.User)
                .paginate(null, limit = 2, Tables.User.name, Tables.User.id)
-
-
-           query.execute<UserModel>(tact)
+               .execute<UserModel>(tact)
        }
 
        val users = result.data.map { it.name }
@@ -45,7 +42,7 @@ class TestPaginationQuery {
        Assertions.assertEquals("Last", decodeCursor?.orderVal)
 
        val resultNext = database.useWriteTransaction { tact ->
-          UserWhere.getAll()
+           Tables.User.getAll()
                .using(Tables.User)
                .paginate(result.nextCursor, limit = 2, Tables.User.name, Tables.User.id)
                .execute<UserModel>(tact)
@@ -59,11 +56,10 @@ class TestPaginationQuery {
        Assertions.assertEquals("Sample", decodeNextCursor?.orderVal)
 
        val resultEmpty = database.useWriteTransaction { tact ->
-           val query = UserWhere.getAll()
+           Tables.User.getAll()
                .using(Tables.User)
                .paginate(resultNext.nextCursor, limit = 2, Tables.User.name, Tables.User.id)
-
-           query.execute<UserModel>(tact)
+               .execute<UserModel>(tact)
        }
        Assertions.assertTrue(resultEmpty.data.isEmpty())
    }
