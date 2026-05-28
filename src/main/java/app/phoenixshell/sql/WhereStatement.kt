@@ -60,4 +60,8 @@ class WhereQuery<T>(
             stmt.bindValue(index + startIndex, binding.value)
         }
     }
+
+    override fun toString(): String {
+        return statement
+    }
 }

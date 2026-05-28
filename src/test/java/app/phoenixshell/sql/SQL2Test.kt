@@ -11,7 +11,7 @@ class SQL2Test {
     @Test
     fun testQuery2() {
         val query = Tables.User
-            .getCreated(9)
+            .whereCreatedAt(9)
             .using(Tables.User)
 
         assertEquals( "where createdAt = ?",query.statement.trim())
@@ -23,7 +23,7 @@ class SQL2Test {
     fun testQueryPage() {
         val cursor = createCursor(lastId = "0932", lastOrderBy = "jaems")
 
-        val query = Tables.User.getCreated(9)
+        val query = Tables.User.whereCreatedAt(9)
             .using(Tables.User)
             .paginate(cursor?.let { encodeCursor(it) }, 30, Tables.User.name, Tables.User.id)
 

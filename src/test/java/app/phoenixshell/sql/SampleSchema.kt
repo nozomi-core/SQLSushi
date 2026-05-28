@@ -23,9 +23,11 @@ object SampleMigration001: SQLDatabaseMigration {
 
     override fun onMigrate(context: SQLMigrationContext) {
         Tables.User.run {
-            context.exec("""
+            context.exec(
+                """
                 create table $table($id text, $name text, $createdAt integer); 
-            """.trimIndent())
+                """.trimIndent()
+            )
         }
 
         context.exec("create table popcorn(name text, createdAt integer);")
@@ -44,11 +46,14 @@ interface CreatedAt {
     val createdAt: SQLFieldName<Long>
 }
 
-fun Tables.User.getCreated(xCreatedAt: Long) = where<Tables.User> { sql ->
-    """where $createdAt = ${sql(createdAt, xCreatedAt)}"""
+fun Tables.User.whereCreatedAt(xCreatedAt: Long) = where<Tables.User> { bind ->
+    """where $createdAt = ${bind(createdAt, xCreatedAt)}"""
 }
 
-fun Tables.User.getAll() = whereAll<Tables.User>()
+fun getAll() = whereAll<Tables.User>()
+fun Tables.User.getByName(xName: String) = where<Tables.User> { bind ->
+    """where $name = ${bind(name, xName)}"""
+}
 
 fun createSampleDatabase(tag: String = ""): SQLDatabase {
     return createDatabase(

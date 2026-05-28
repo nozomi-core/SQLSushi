@@ -3,7 +3,7 @@ package app.phoenixshell.sql.sample.test
 import app.phoenixshell.sql.Tables
 import app.phoenixshell.sql.UserModel
 import app.phoenixshell.sql.createSampleDatabase
-import app.phoenixshell.sql.getCreated
+import app.phoenixshell.sql.whereCreatedAt
 import app.phoenixshell.sql.query.asList
 import app.phoenixshell.sql.query.insertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +26,7 @@ class TestSelectQuery {
         }
 
         val users = database.useReader { tact ->
-            Tables.User.getCreated(84374L)
+            Tables.User.whereCreatedAt(84374L)
                 .using(Tables.User)
                 .asList<UserModel>(tact)
         }

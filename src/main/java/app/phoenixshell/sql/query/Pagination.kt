@@ -118,8 +118,10 @@ fun <T> WhereQuery<T>.paginate(
         select * from $table
     """.trimIndent()
 
+    val fullStatement = "$select ${statement.trimIndent()} $cursorClause $orderByStatement"
+
     return PaginatedQuery(
-        statement = "$select ${statement.trimIndent()} $cursorClause $orderByStatement",
+        statement = fullStatement,
         bindings = bindings + cursorBindings,
         orderBy = orderBy,
         pageId = pageId

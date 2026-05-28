@@ -28,7 +28,7 @@ class TestInsertDatabase {
 
         val users = database.useReader { tact ->
             Tables.User
-                .where(Tables.User.getAll())
+                .where(getAll())
                 .asList<UserModel>(tact)
         }.map { it.name }
 
