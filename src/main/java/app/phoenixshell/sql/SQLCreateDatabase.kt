@@ -2,6 +2,7 @@ package app.phoenixshell.sql
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import java.sql.DriverManager
 
 sealed class DatabaseMode {
     object Memory: DatabaseMode()
@@ -14,70 +15,86 @@ fun createDatabase(
     mode: DatabaseMode,
     connection: SQLDatabaseConnection,
     migrations: SQLDatabaseMigrationFactory,
-    engine: SQLDatabaseEngine,
-    resultDecoder: ResultDecoder
+    engine: SQLDatabaseEngine
 ): SQLDatabase {
 
-    val options = SQLDatabaseOptions(
-        targetVersion = targetVersion,
-        name = name,
-        mode = mode,
-        connection = connection,
-        migrations = migrations,
-        engine = engine
-    )
+    val databaseUrl = connection.createJdbcUrl(name, mode)
+    setupConnection(databaseUrl,  mode, connection)
 
-    val hikariConfig = HikariConfig().apply {
-        jdbcUrl = options.connection.createJdbcUrl(options)
+    val writeConfig = HikariConfig().apply {
+        poolName = "WritePool"
+        jdbcUrl = databaseUrl
         isAutoCommit = false
+        maximumPoolSize = 1
+        connectionTimeout = 500
     }
 
-    val dataSource = HikariDataSource(hikariConfig)
-
-    dataSource.connection.use {
-        options.connection.onCreateConnection(it)
+    val readConfig = HikariConfig().apply {
+        poolName = "ReadPool"
+        jdbcUrl = databaseUrl
+        isAutoCommit = true
+        maximumPoolSize = 8
+        connectionTimeout = 500
     }
 
-    val connectionWrapper = SQLConnection(dataSource, resultDecoder).apply {
-        setupEngine(this, options)
-    }
+    val writeDataSource = HikariDataSource(writeConfig)
+    val readDataSource = HikariDataSource(readConfig)
 
-    return SQLDatabase(connectionWrapper, options.engine).apply {
-        setupMigrations(this, options)
+    return SQLDatabase(SQLConnection(
+        writeDataSource = writeDataSource,
+        readDataSource = readDataSource,
+        modeSelector = connection,
+        dbMode = mode
+    ),
+        engine = engine
+    ).apply {
+        setupEngine(this, engine)
+        setupMigrations(this, targetVersion, migrations)
     }
 }
 
-private fun setupEngine(db: SQLConnection, options: SQLDatabaseOptions) {
-    val engine = options.engine
-    val migrations = options.migrations
-
-    if(engine != null && migrations != null) {
-        val currentDatabase = engine.getCurrentDatabaseVersion(db)
-        if(currentDatabase is SQLDatabaseVersion.EmptyVersion) {
-            db.useTransaction {
-                engine.onCreate(it)
-            }
+private fun setupConnection(
+    databaseUrl: String,
+    mode: DatabaseMode,
+    source: SQLDatabaseConnection
+) {
+    DriverManager.getConnection(databaseUrl).use { connection ->
+        connection.createStatement().use { stmt ->
+            source.onCreateConnection(mode, stmt)
         }
     }
 }
 
-private fun setupMigrations(db: SQLDatabase, options: SQLDatabaseOptions) {
-    val engine = options.engine
-    val migrations = options.migrations
+private fun setupEngine(
+    db: SQLDatabase,
+    engine: SQLDatabaseEngine
+) {
+    db.useWriteTransaction { context ->
+        val currentDatabase = engine.getCurrentDatabaseVersion(context)
+        if(currentDatabase is SQLDatabaseVersion.EmptyVersion) {
+            engine.onCreate(context)
+        }
+    }
+}
 
-    if(engine != null && migrations != null) {
-        val currentDatabase = db.getDatabaseVersion()
-        if(currentDatabase is SQLDatabaseVersion.CurrentVersion) {
-            val currentVersion = currentDatabase.version
+private fun setupMigrations(
+    db: SQLDatabase,
+    targetVersion: Int,
+    migrations: SQLDatabaseMigrationFactory
+) {
 
-            if(options.targetVersion >= 1) {
-                runTargetMigrations(
-                    db = db,
-                    factory = options.migrations,
-                    currentVersion = currentVersion,
-                    targetVersion = options.targetVersion
-                )
-            }
+    val currentDatabase = db.getDatabaseVersion()
+
+    if(currentDatabase is SQLDatabaseVersion.CurrentVersion) {
+        val currentVersion = currentDatabase.version
+
+        if(targetVersion >= 1) {
+            runTargetMigrations(
+                db = db,
+                factory = migrations,
+                currentVersion = currentVersion,
+                targetVersion = targetVersion
+            )
         }
     }
 }
@@ -91,18 +108,17 @@ private fun runTargetMigrations(
     val migrations = factory.onCreateMigrations()
     validateMigrations(migrations)
 
-    db.useTransaction { tact ->
-        var version = currentVersion
+    var version = currentVersion
 
-        //Migrate from current version ie 0, and start to migrate from currentVersion + 1
-        while(version < targetVersion) {
-            val migrationVersion = ++version
-            val nextMigration = migrations.find { it.version == migrationVersion }!!
+    //Migrate from current version ie 0, and start to migrate from currentVersion + 1
+    while(version < targetVersion) {
+        val migrationVersion = ++version
+        val nextMigration = migrations.find { it.version == migrationVersion }!!
 
-            nextMigration.onMigrate(tact)
+        db.useWriteTransaction { context ->
+            nextMigration.onMigrate(context)
+            db.setDatabaseVersion(context, targetVersion)
         }
-
-        db.setDatabaseVersion(tact, targetVersion)
     }
 }
 

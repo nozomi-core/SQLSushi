@@ -2,10 +2,10 @@ package app.phoenixshell.sql
 
 open class SQLSchema
 
-open class SQLTable(private val schema: SQLSchema, val table: String) {
-    //TODO: Added SQL schema for future
-
-    val id = field<String>("id")
+open class SQLTable(
+    val table: String
+) {
+    internal val columns = mutableListOf<SQLFieldName<*>>()
 
     override fun toString(): String = table
 
@@ -16,11 +16,9 @@ open class SQLTable(private val schema: SQLSchema, val table: String) {
     fun double(name: String): SQLFieldName<Double> = field(name)
     fun boolean(name: String): SQLFieldName<Boolean> = field(name)
 
-    fun <T> map(mapper: SQLTable.() -> T): T {
-        return mapper(this)
-    }
-
     private inline fun <reified T> field(name: String): SQLFieldName<T> {
-        return SQLFieldName(this, name, T::class.java)
+        return SQLFieldName(name, T::class.java).apply {
+            columns.add(this)
+        }
     }
 }

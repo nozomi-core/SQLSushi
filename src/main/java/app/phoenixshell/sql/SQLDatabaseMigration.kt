@@ -2,5 +2,5 @@ package app.phoenixshell.sql
 
 interface SQLDatabaseMigration {
     val version: Int
-    fun onMigrate(tact: SQLTransaction)
+    fun onMigrate(context: SQLMigrationContext)
 }

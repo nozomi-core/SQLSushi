@@ -1,0 +1,31 @@
+package app.phoenixshell.sql
+
+import java.sql.Connection
+import java.sql.PreparedStatement
+
+class SQLInternalContext internal constructor(
+    private val connection: Connection
+): SQLContext, SQLReadContext {
+    override fun exec(sql: String) {
+        connection.createStatement().use { statement ->
+            statement.execute(sql)
+        }
+    }
+
+    override fun <T> prepare(sql: String, block: (PreparedStatement) -> T): T {
+        return connection.prepareStatement(sql).use { stmt ->
+            block(stmt)
+        }
+    }
+}
+
+interface SQLContext: SQLMigrationContext {
+    override fun exec(sql: String)
+    fun <T> prepare(sql: String, block: (PreparedStatement) -> T): T
+}
+
+interface SQLMigrationContext {
+    fun exec(sql: String)
+}
+
+interface SQLReadContext: SQLContext

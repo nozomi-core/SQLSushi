@@ -1,9 +1,7 @@
 package app.phoenixshell.sql
 
-import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
-import java.sql.Statement
 
 class SQLPreparedStatement private constructor(
     private val sql: String,
@@ -116,8 +114,9 @@ class SQLPreparedStatement private constructor(
 
     companion object {
 
+        /*
         fun create(conn: Connection, sql: String, fields: Array<SQLFieldName<*>>): SQLPreparedStatement {
             return SQLPreparedStatement(sql.lowercase(), conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS), fields)
-        }
+        }*/
     }
 }
