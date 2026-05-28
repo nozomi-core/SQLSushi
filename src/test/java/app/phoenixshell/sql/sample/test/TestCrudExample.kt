@@ -18,8 +18,9 @@ class TestCrudExample {
 
 
         database.useWriteTransaction { tact ->
-            val model = UserModel("123", "Sample", 84374L)
-            Tables.User.insert(tact, model)
+            with(Tables.User) {
+                insert(tact, UserModel("123", "Sample", 84374L))
+            }
         }
     }
 
