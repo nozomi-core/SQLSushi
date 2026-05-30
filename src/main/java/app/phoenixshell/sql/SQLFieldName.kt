@@ -7,6 +7,6 @@ class SQLFieldName<T>(
     override fun toString(): String = field
 
     companion object {
-        fun int(name: String) = SQLFieldName<Int>(name, Int::class.java)
+        fun int(name: String) = SQLFieldName(name, Int::class.java)
     }
 }

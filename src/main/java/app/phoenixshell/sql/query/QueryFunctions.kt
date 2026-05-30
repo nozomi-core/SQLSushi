@@ -8,7 +8,7 @@ import app.phoenixshell.sql.WhereQuery
 import kotlinx.serialization.*
 import java.sql.PreparedStatement
 
-inline fun <reified S: SQLTable, reified T> S.insert(
+inline fun <reified S: SQLTable, reified T: InsertEntity> S.insert(
     context: SQLContext,
     value: T
 ) {
@@ -29,13 +29,13 @@ inline fun <reified S: SQLTable, reified T> S.insert(
     }
 }
 
-inline fun <reified S: SQLTable, reified T> S.insertAll(context: SQLContext, values: Iterable<T>) {
+inline fun <reified S: SQLTable, reified T: InsertEntity> S.insertAll(context: SQLContext, values: Iterable<T>) {
     values.forEach {
         insert(context, it)
     }
 }
 
-inline fun <reified S: SQLTable, reified T> S.update(
+inline fun <reified S: SQLTable, reified T: UpdateEntity> S.update(
     context: SQLContext,
     builder: WhereBuilder<S>,
     value: T
@@ -58,19 +58,20 @@ inline fun <reified S: SQLTable, reified T> S.update(
     }
 }
 // Decode a SELECT result into a list of data classes
-inline fun <reified T> WhereQuery<*>.asList(context: SQLReadContext): List<T> {
+inline fun <reified T> WhereQuery<*>.asList(context: SQLReadContext): QueryResult<T> {
     val fullStatement = "SELECT * FROM ${this.table} ${this.statement.trim()}"
 
     return context.prepare(fullStatement) { stmt ->
         bind(1, stmt)
 
         val rs = stmt.executeQuery()
-        buildList {
+        val list = buildList {
             while (rs.next()) {
                 val decoder = ResultSetDecoder(rs, serializer<T>().descriptor)
                 add(serializer<T>().deserialize(decoder))
             }
         }
+        QueryResult(list)
     }
 }
 

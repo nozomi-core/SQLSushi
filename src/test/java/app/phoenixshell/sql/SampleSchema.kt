@@ -1,5 +1,6 @@
 package app.phoenixshell.sql
 
+import app.phoenixshell.sql.query.InsertEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -8,7 +9,7 @@ data class UserModel(
     val id: String,
     val name: String,
     val createdAt: Long
-)
+): InsertEntity
 
 object Tables: SQLSchema() {
     object User: SQLTable("users"), CreatedAt {
